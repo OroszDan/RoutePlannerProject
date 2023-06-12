@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.6.33723.286
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RouteplannerClient", "RouteplannerClient\RouteplannerClient.csproj", "{DC064E53-EB19-4277-BC7A-74B17A535014}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoutePlannerClient", "RouteplannerClient\RoutePlannerClient.csproj", "{DC064E53-EB19-4277-BC7A-74B17A535014}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RoutePlanner", "RoutePlanner\RoutePlanner.vcxproj", "{F46AFF37-2612-4F0E-86AC-54C151A75446}"
 EndProject
