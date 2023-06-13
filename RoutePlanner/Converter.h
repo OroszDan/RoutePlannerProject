@@ -1,7 +1,10 @@
 #pragma once
 
 #include "Segment.h"
-#include "tinyxml2.h"
+#include "TinyXML2/tinyxml2.h"
+#include "include/json/value.h"
+#include "include/json/writer.h"
+
 
 #include <set>
 #include <map>
@@ -9,8 +12,6 @@
 #include <unordered_map>
 #include <iostream>
 #include <fstream>
-#include <json/value.h>
-#include <json/writer.h>
 
 class Converter
 {

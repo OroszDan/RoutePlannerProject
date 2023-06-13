@@ -3,6 +3,8 @@
 
 #include "RoutePlanner.h"
 
+#include <chrono>
+
 //int JsonCreate() 
 //{
 //    Json::Value event;
@@ -46,29 +48,33 @@ int main()
 
     std::cout << jeboi << std::endl;*/
 
-
     //std::unique_ptr<Converter> converter = std::make_unique<Converter>();
 
-    ////converter->ConvertOsmDataToJson("liechtenstein-latest.osm", "highwaydata.json");
-    //converter->ConvertOsmDataToJson("luxembourg-latest.osm", "highwaydata.json");
-
-
-
-
+    //converter->ConvertOsmDataToJson("liechtenstein-latest.osm", "highwaydata.json");
+    ////converter->ConvertOsmDataToJson("luxembourg-latest.osm", "highwaydata.json");
 
     std::unique_ptr<RoutePlanner> planner = std::make_unique<RoutePlanner>();
 
     std::shared_ptr<std::vector<const Junction*>> resultJunctions = std::make_shared<std::vector<const Junction*>>();
 
+   
+
     planner->Initialize();
+
+    std::chrono::high_resolution_clock::time_point start(
+        std::chrono::high_resolution_clock::now());
+
     //planner->FindFastestRoute(346146156, 32020993);
     //planner->FindFastestRoute(346146156, 30604007, resultJunctions);
     //planner->FindFastestRoute((float)47.243446350097656f, (float)9.5248165130615234f, (float)47.244438171386719f, (float)9.5273571014404297f, resultJunctions);
     //planner->FindFastestRoute(47.06570898583726, 9.496391087218626, 47.2435417175293, 9.524989128112793, resultJunctions);
-    planner->FindFastestRoute(47.2435417175293, 9.524989128112793, 47.23929180243033, 9.536333395646295, resultJunctions);
+    planner->FindFastestRoute(47.2435417175293, 9.524989128112793, 47.17247337653919, 9.533708386783616, resultJunctions);
+
+    std::cout << (std::chrono::high_resolution_clock::now() - start);
 
     Converter::SaveResultToGeoJson(resultJunctions, "../RoutePlannerClient/wwwroot/results/result.json");
-    ;
+    
+    
 
 }
 

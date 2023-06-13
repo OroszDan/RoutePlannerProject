@@ -1,13 +1,14 @@
 #include "Converter.h"
+#include "Util.h"
+#include "TinyXML2/tinyxml2.h"
+#include "include/json/value.h"
+#include "include/json/writer.h"
+#include "include/json/reader.h"
 
 #include <string>
 #include <cmath>
 #include <numbers>
-#include <tinyxml2.h>
-#include <json/value.h>
-#include <json/writer.h>
-#include <json/reader.h>
-#include "Util.h"
+
 
 Converter::Converter()
 {
@@ -473,7 +474,8 @@ bool Converter::IsRoad(const char* roadType, const tinyxml2::XMLElement* tag)
 		strcmp(roadType, "trunk_link") &&
 		strcmp(roadType, "primary_link") &&
 		strcmp(roadType, "secondary_link") &&
-		strcmp(roadType, "tertiary_link"))
+		strcmp(roadType, "tertiary_link") &&
+		strcmp(roadType, "service"))
 	{
 		return false;
 	}
