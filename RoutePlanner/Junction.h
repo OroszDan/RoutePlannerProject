@@ -3,6 +3,7 @@
 #include <cmath>
 #include <cstdint>
 #include <vector>
+#include <memory>
 
 class Segment;  //forward declaration
 
@@ -28,7 +29,7 @@ public:
 
 	float_t m_FastestRouteInMinutesHeuristic;
 
-	std::vector<Segment*>* m_Segments;
+	std::shared_ptr<std::vector<Segment*>> m_StartingSegments;
 };
 
 struct Node

@@ -1,53 +1,10 @@
-// ProjectWork.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
 
 #include "RoutePlanner.h"
 
 #include <chrono>
 
-//int JsonCreate() 
-//{
-//    Json::Value event;
-//    Json::Value vec(Json::arrayValue);
-//    vec.append(Json::Value(1));
-//    vec.append(Json::Value(2));
-//    vec.append(Json::Value(3));
-//
-//    event["competitors"]["home"]["name"] = "Liverpool";
-//    event["competitors"]["home"]["code"] = 89223;
-//    event["competitors"]["away"]["name"] = "Aston Villa";
-//    event["competitors"]["away"]["code"] = vec;
-//
-//    Json::StreamWriterBuilder builder;
-//
-//    builder["commentStyle"] = "None";
-//    builder["indentation"] = "   ";
-//
-//    std::unique_ptr<Json::StreamWriter> writer(builder.newStreamWriter());
-//    std::ofstream outputFileStream;
-//    outputFileStream.open("test.json");
-//    writer->write(event, &outputFileStream);
-//    outputFileStream.close();
-//
-//   return 0;
-//}
-
 int main()
 {
-    /*std::shared_ptr<std::vector<Junction>> resultJunctions = std::make_shared<std::vector<Junction>>();
-
-    Junction junction = Junction(2342, 3232, 232);
-
-    resultJunctions->push_back(junction);
-
-    auto je = &resultJunctions->back();
-
-    std::cout << je << std::endl;
-
-    auto jeboi = &resultJunctions->back();
-
-    std::cout << jeboi << std::endl;*/
-
     //std::unique_ptr<Converter> converter = std::make_unique<Converter>();
 
     //converter->ConvertOsmDataToJson("liechtenstein-latest.osm", "highwaydata.json");
@@ -57,15 +14,11 @@ int main()
 
     std::shared_ptr<std::vector<const Junction*>> resultJunctions = std::make_shared<std::vector<const Junction*>>();
 
-   
-
     planner->Initialize();
 
     std::chrono::high_resolution_clock::time_point start(
         std::chrono::high_resolution_clock::now());
 
-    //planner->FindFastestRoute(346146156, 32020993);
-    //planner->FindFastestRoute(346146156, 30604007, resultJunctions);
     //planner->FindFastestRoute((float)47.243446350097656f, (float)9.5248165130615234f, (float)47.244438171386719f, (float)9.5273571014404297f, resultJunctions);
     //planner->FindFastestRoute(47.06570898583726, 9.496391087218626, 47.2435417175293, 9.524989128112793, resultJunctions);
     planner->FindFastestRoute(47.2435417175293, 9.524989128112793, 47.17247337653919, 9.533708386783616, resultJunctions);
@@ -74,8 +27,6 @@ int main()
 
     Converter::SaveResultToGeoJson(resultJunctions, "../RoutePlannerClient/wwwroot/results/result.json");
     
-    
-
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu

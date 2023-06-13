@@ -90,9 +90,7 @@ void Converter::GetPreprocessedData(const Json::Value& root, std::shared_ptr<std
 			for (auto nodeIt = node["innernodes"].begin(); nodeIt != node["innernodes"].end(); nodeIt++)
 			{
 				segment->m_InnerNodes->push_back(Junctions->at(nodeIt->asInt64()));
-			}
-
-			
+			}		
 
 			if (oneWay)
 			{
