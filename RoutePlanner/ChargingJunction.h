@@ -4,7 +4,7 @@
 
 enum ChargerType
 {
-	css, type2
+	undefined, css, type2, chademo
 };
 
 class ChargingJunction : public Junction 

@@ -134,7 +134,7 @@ void Converter::SelectHighwayNodesNeeded()
 				int i = 0;
 				while (m_Nd != nullptr)
 				{
-					auto ref = m_Nd->FindAttribute("ref")->Int64Value();
+					int64_t ref = m_Nd->FindAttribute("ref")->Int64Value();
 
 					auto it = m_Node_Ids->find(ref);
 
@@ -184,13 +184,13 @@ void Converter::SelectChargingNodes()
 
 		tinyxml2::XMLElement* tag = node->FirstChildElement("tag");
 
-		if (tag != nullptr && tag->FindAttribute("k")->Value() == "amenity") //strcmp kell vvagy 
-		{
-			std::cout << tag->FindAttribute("v")->Value() << std::endl;
-		}
+		//if (tag != nullptr && !strcmp(tag->FindAttribute("k")->Value(), "amenity")) //strcmp kell vvagy 
+		//{
+		//	std::cout << tag->FindAttribute("v")->Value() << std::endl;
+		//}
 		
 		while (tag != nullptr && 
-			!(tag->FindAttribute("k")->Value() == "amenity" && tag->FindAttribute("v")->Value() == "charging_station"))
+			!( !strcmp(tag->FindAttribute("k")->Value(), "amenity") && !strcmp(tag->FindAttribute("v")->Value(), "charging_station")))
 		{
 			tag = tag->NextSiblingElement("tag");
 		}
@@ -206,7 +206,7 @@ void Converter::SelectChargingNodes()
 
 				if (result != std::string::npos)
 				{
-					ChargingNode chargingNode = ChargingNode();
+					ChargingNode chargingNode = ChargingNode();  //check for charging standard
 
 					chargingNode.m_Id = node->FindAttribute("id")->Int64Value();
 					chargingNode.m_Lat = node->FindAttribute("lat")->Int64Value();
