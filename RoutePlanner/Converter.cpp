@@ -8,6 +8,7 @@
 #include <string>
 #include <cmath>
 #include <numbers>
+#include "ChargingJunction.h"
 
 
 Converter::Converter()
@@ -108,7 +109,7 @@ void Converter::GetPreprocessedData(const Json::Value& root, std::shared_ptr<std
 	}
 }
 
-void Converter::SelectNodesNeeded()
+void Converter::SelectHighwayNodesNeeded()
 {
 	m_Node_Ids = std::make_unique<std::unordered_map<int64_t, uint8_t>>();
 
@@ -163,6 +164,73 @@ void Converter::SelectNodesNeeded()
 		}
 
 		m_Way = m_Way->NextSiblingElement("way");
+	} 
+}
+
+void Converter::SelectChargingNodes()
+{
+	std::shared_ptr<std::vector<ChargingNode>> chargingNodes = std::make_shared<std::vector<ChargingNode>>();
+
+	const tinyxml2::XMLAttribute* lat;
+	const tinyxml2::XMLAttribute* lon;
+	const tinyxml2::XMLAttribute* id;
+
+	tinyxml2::XMLElement* node;
+
+	node = m_Osm->FirstChildElement("node");
+
+	while (node != nullptr)
+	{
+
+		tinyxml2::XMLElement* tag = node->FirstChildElement("tag");
+
+		if (tag != nullptr && tag->FindAttribute("k")->Value() == "amenity") //strcmp kell vvagy 
+		{
+			std::cout << tag->FindAttribute("v")->Value() << std::endl;
+		}
+		
+		while (tag != nullptr && 
+			!(tag->FindAttribute("k")->Value() == "amenity" && tag->FindAttribute("v")->Value() == "charging_station"))
+		{
+			tag = tag->NextSiblingElement("tag");
+		}
+		
+		if (tag != nullptr)
+		{
+			std::string value;
+			tinyxml2::XMLElement* innerTag = node->FirstChildElement("tag");
+			while (innerTag != nullptr)
+			{
+				std::string value = innerTag->FindAttribute("k")->Value();
+				auto result = value.find("output");
+
+				if (result != std::string::npos)
+				{
+					ChargingNode chargingNode = ChargingNode();
+
+					chargingNode.m_Id = node->FindAttribute("id")->Int64Value();
+					chargingNode.m_Lat = node->FindAttribute("lat")->Int64Value();
+					chargingNode.m_Lon = node->FindAttribute("lon")->Int64Value();
+
+					std::stringstream ss(innerTag->FindAttribute("v")->Value());
+					std::string number;
+
+					std::getline(ss, number, ':');
+
+					chargingNode.m_Output = std::stoi(number);
+				}
+				else
+				{
+					innerTag = innerTag->NextSiblingElement("tag");
+				}
+			}
+			
+		
+			//get further data
+		}
+
+		node = node->NextSiblingElement("node");
+		
 	}
 }
 
@@ -276,19 +344,19 @@ void Converter::LoadHighways()
 				int i = 0;
 				while (m_Nd != nullptr)
 				{
-					auto ref = m_Nd->FindAttribute("ref")->Int64Value();
+					auto nodeRef = m_Nd->FindAttribute("ref")->Int64Value();
 
 					if (i == 0 || m_Nd->NextSiblingElement("nd") == nullptr)
 					{
-						way_temp.m_InnerNodes->push_back(ref);
+						way_temp.m_InnerNodes->push_back(nodeRef);
 					}
 					else
 					{
-						auto numberOfRoadsCrossing = m_Node_Ids->at(ref);
+						auto numberOfRoadsCrossing = m_Node_Ids->at(nodeRef);
 
 						if (numberOfRoadsCrossing > 0)
 						{
-							way_temp.m_InnerNodes->push_back(ref);
+							way_temp.m_InnerNodes->push_back(nodeRef);
 
 							CalculateAndSetLength(&way_temp);
 
@@ -296,12 +364,12 @@ void Converter::LoadHighways()
 
 							way_temp.m_InnerNodes = std::make_shared<std::vector<int64_t>>();
 
-							way_temp.m_InnerNodes->push_back(ref);
+							way_temp.m_InnerNodes->push_back(nodeRef);
 							
 						}
 						else
 						{
-							way_temp.m_InnerNodes->push_back(ref);
+							way_temp.m_InnerNodes->push_back(nodeRef);
 						}
 					}
 
@@ -387,7 +455,8 @@ void Converter::SaveToJson(const char* fileName)
 void Converter::ConvertOsmDataToJson(const char* osmFileName, const char* jsonFileName)
 {
 	LoadOsmFile(osmFileName);
-	SelectNodesNeeded();
+	SelectChargingNodes();
+	SelectHighwayNodesNeeded();
 	LoadHighwayNodes();
 	LoadHighways();
 	SaveToJson(jsonFileName);

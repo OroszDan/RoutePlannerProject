@@ -35,7 +35,9 @@ private:
 
 	void GetPreprocessedData(const Json::Value& root, std::shared_ptr<std::unordered_map<int64_t, Junction*>> Junctions, std::shared_ptr<std::vector<Segment*>> Segments);
 
-	void SelectNodesNeeded();
+	void SelectHighwayNodesNeeded();
+
+	void SelectChargingNodes();
 
 	void LoadHighwayNodes();
 
