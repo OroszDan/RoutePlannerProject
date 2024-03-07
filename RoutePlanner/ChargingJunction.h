@@ -2,25 +2,29 @@
 
 #include "Junction.h"
 
-enum ChargerType
+enum class ChargerType
 {
-	undefined, css, type2, chademo
+	undefined, ccs, type2, chademo
+};
+
+struct ChargingData
+{
+	uint16_t m_Output;
+
+	ChargerType m_Type;
 };
 
 class ChargingJunction : public Junction 
 {
 public:
 
-	uint16_t m_Output;
+	ChargingJunction(int64_t id, float_t lon, float_t lat);
 
-	ChargerType m_Type;
-
+	std::vector<ChargingData> m_ChargingInfo;
 };
 
 struct ChargingNode : public Node
 {
-	uint16_t m_Output;
-
-	ChargerType m_Type;
+	std::vector<ChargingData> m_ChargingInfo;
 };
 

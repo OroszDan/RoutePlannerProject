@@ -199,6 +199,8 @@ void Converter::SelectChargingNodes()
 		{
 			std::string value;
 			tinyxml2::XMLElement* innerTag = node->FirstChildElement("tag");
+			bool chargerFound = false;
+			ChargingNode chargingNode;
 			while (innerTag != nullptr)
 			{
 				std::string value = innerTag->FindAttribute("k")->Value();
@@ -206,26 +208,65 @@ void Converter::SelectChargingNodes()
 
 				if (result != std::string::npos)
 				{
-					ChargingNode chargingNode = ChargingNode();  //check for charging standard
+					ChargerType chargerType = ChargerType::undefined;
 
-					chargingNode.m_Id = node->FindAttribute("id")->Int64Value();
-					chargingNode.m_Lat = node->FindAttribute("lat")->Int64Value();
-					chargingNode.m_Lon = node->FindAttribute("lon")->Int64Value();
+					if (value.find("ccs") != std::string::npos)
+					{
+						chargerType = ChargerType::ccs;
+					}
+					else
+					{
+						if (value.find("type2") != std::string::npos)
+						{
+							chargerType = ChargerType::type2;
+						}
+						else
+						{
+							if (value.find("chademo") != std::string::npos)
+							{
+								chargerType = ChargerType::chademo;
+							}
+							else
+							{
+								if (value.find("tesla_supercharger") != std::string::npos)
+								{
+									chargerType = ChargerType::type2;
+								}
+							}
+						}
+					}
 
-					std::stringstream ss(innerTag->FindAttribute("v")->Value());
-					std::string number;
+					if (chargerType != ChargerType::undefined)
+					{
+						if (!chargerFound)
+						{
+							chargerFound = true;
+							chargingNode = ChargingNode();
 
-					std::getline(ss, number, ':');
+							chargingNode.m_Id = node->FindAttribute("id")->Int64Value();
+							chargingNode.m_Lat = node->FindAttribute("lat")->Int64Value();
+							chargingNode.m_Lon = node->FindAttribute("lon")->Int64Value();
 
-					chargingNode.m_Output = std::stoi(number);
+							chargingNodes->emplace_back(chargingNode);
+						}
+						
+						ChargingData data = ChargingData();
+
+						data.m_Type = chargerType;
+
+						std::stringstream ss(innerTag->FindAttribute("v")->Value());
+						std::string number;
+						std::getline(ss, number, ':');
+						data.m_Output = std::stoi(number);
+
+						chargingNodes->back().m_ChargingInfo.emplace_back(data);
+					}
 				}
-				else
-				{
-					innerTag = innerTag->NextSiblingElement("tag");
-				}
+
+				innerTag = innerTag->NextSiblingElement("tag");
 			}
 			
-		
+			
 			//get further data
 		}
 
