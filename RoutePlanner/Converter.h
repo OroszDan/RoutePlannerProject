@@ -4,6 +4,7 @@
 #include "TinyXML2/tinyxml2.h"
 #include "include/json/value.h"
 #include "include/json/writer.h"
+#include "ChargingJunction.h"
 
 
 #include <set>
@@ -43,6 +44,8 @@ private:
 
 	void LoadHighways();
 
+	void ConnectChargingNodes();
+
 	void SaveToJson(const char* fileName);	
 
 private:
@@ -50,6 +53,7 @@ private:
 	std::unique_ptr<std::unordered_map<int64_t, uint8_t>> m_Node_Ids;
 	std::unique_ptr<std::unordered_map<int64_t, Node>> m_Nodes;
 	std::unique_ptr<std::vector<Way>> m_Ways;
+	std::unique_ptr<std::vector<ChargingNode>> m_ChargingNodes;
 
 	tinyxml2::XMLDocument m_xDoc;
 

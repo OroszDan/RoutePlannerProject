@@ -39,9 +39,9 @@ struct Way
 
 	bool m_OneWay;
 
-	int64_t m_IdFrom;
+	/*int64_t m_IdFrom;
 
-	int64_t m_IdTo;
+	int64_t m_IdTo;*/
 
 	uint8_t m_Maxspeed;
 

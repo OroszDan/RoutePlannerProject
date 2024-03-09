@@ -164,12 +164,12 @@ void Converter::SelectHighwayNodesNeeded()
 		}
 
 		m_Way = m_Way->NextSiblingElement("way");
-	} 
+	}
 }
 
 void Converter::SelectChargingNodes()
 {
-	std::shared_ptr<std::vector<ChargingNode>> chargingNodes = std::make_shared<std::vector<ChargingNode>>();
+	m_ChargingNodes = std::make_unique<std::vector<ChargingNode>>();
 
 	const tinyxml2::XMLAttribute* lat;
 	const tinyxml2::XMLAttribute* lon;
@@ -200,7 +200,7 @@ void Converter::SelectChargingNodes()
 			std::string value;
 			tinyxml2::XMLElement* innerTag = node->FirstChildElement("tag");
 			bool chargerFound = false;
-			ChargingNode chargingNode;
+			
 			while (innerTag != nullptr)
 			{
 				std::string value = innerTag->FindAttribute("k")->Value();
@@ -208,6 +208,7 @@ void Converter::SelectChargingNodes()
 
 				if (result != std::string::npos)
 				{
+					ChargingNode chargingNode;
 					ChargerType chargerType = ChargerType::undefined;
 
 					if (value.find("ccs") != std::string::npos)
@@ -244,10 +245,10 @@ void Converter::SelectChargingNodes()
 							chargingNode = ChargingNode();
 
 							chargingNode.m_Id = node->FindAttribute("id")->Int64Value();
-							chargingNode.m_Lat = node->FindAttribute("lat")->Int64Value();
-							chargingNode.m_Lon = node->FindAttribute("lon")->Int64Value();
+							chargingNode.m_Lat = node->FindAttribute("lat")->float_tValue();
+							chargingNode.m_Lon = node->FindAttribute("lon")->float_tValue();
 
-							chargingNodes->emplace_back(chargingNode);
+							m_ChargingNodes->emplace_back(chargingNode);
 						}
 						
 						ChargingData data = ChargingData();
@@ -259,7 +260,7 @@ void Converter::SelectChargingNodes()
 						std::getline(ss, number, ':');
 						data.m_Output = std::stoi(number);
 
-						chargingNodes->back().m_ChargingInfo.emplace_back(data);
+						m_ChargingNodes->back().m_ChargingInfo.emplace_back(data);
 					}
 				}
 
@@ -428,8 +429,43 @@ void Converter::LoadHighways()
 	}
 }
 
+void Converter::ConnectChargingNodes()
+{
+	uint32_t idCounter = 0;
+
+	for (auto& charger : *m_ChargingNodes)
+	{
+		auto it = std::min_element(m_Nodes->cbegin(), m_Nodes->cend(), [charger](std::pair<int64_t, Node> node1, std::pair<int64_t, Node> node2) {
+
+			return Util::CalculateDistanceBetweenTwoLatLonsInMetres(charger.m_Lat, node1.second.m_Lat, charger.m_Lon, node1.second.m_Lon)
+				< Util::CalculateDistanceBetweenTwoLatLonsInMetres(charger.m_Lat, node2.second.m_Lat, charger.m_Lon, node2.second.m_Lon);
+		});
+
+		Way connectingWay = Way();
+
+		connectingWay.m_Id = idCounter;
+		connectingWay.m_InnerNodes->emplace_back(it->second.m_Id);
+		connectingWay.m_InnerNodes->emplace_back(charger.m_Id);
+		connectingWay.m_Length = Util::CalculateDistanceBetweenTwoLatLonsInMetres(charger.m_Lat, it->second.m_Lat, charger.m_Lon, it->second.m_Lon);
+		connectingWay.m_Maxspeed = 50;
+		connectingWay.m_OneWay = false;
+
+		m_Ways->emplace_back(connectingWay);
+		auto je = m_Ways->back();
+
+		++idCounter;
+	}
+
+	//insert extra nodes
+	/*for (auto& charger : *m_ChargingNodes)
+	{
+		m_Nodes->insert(std::make_pair(charger.m_Id, charger));
+	}*/
+}
+
 void Converter::SaveToJson(const char* fileName)
 {
+	//save nodes
 	Json::Value nodes(Json::arrayValue);
 
 	for (auto it = m_Nodes->cbegin(); it != m_Nodes->cend(); it++)
@@ -442,9 +478,10 @@ void Converter::SaveToJson(const char* fileName)
 		nodes.append(node);
 	}
 
+	//save ways
 	Json::Value ways(Json::arrayValue);
 
-	for (auto it = m_Ways->begin(); it != m_Ways->cend(); it++)
+	for (auto it = m_Ways->cbegin(); it != m_Ways->cend(); it++)
 	{
 		Json::Value way;
 		way["way"]["id"] = it->m_Id;
@@ -476,7 +513,35 @@ void Converter::SaveToJson(const char* fileName)
 		ways.append(way);
 	}
 
+	//save chargingNodes
+
+	Json::Value chargingNodes(Json::arrayValue);
+
+	for (auto it = m_ChargingNodes->cbegin(); it != m_ChargingNodes->cend(); it++)
+	{
+		Json::Value chargingNode;
+		chargingNode["chargingNode"]["id"] = it->m_Id;
+		chargingNode["chargingNode"]["lat"] = it->m_Lat;
+		chargingNode["chargingNode"]["lon"] = it->m_Lon;
+
+		Json::Value chargingInfos(Json::arrayValue);
+
+		for (auto innerIt = it->m_ChargingInfo.cbegin(); innerIt != it->m_ChargingInfo.cend(); innerIt++)
+		{
+			Json::Value chargingData;
+			chargingData["chargingData"]["output"] = innerIt->m_Output;
+			chargingData["chargingData"]["type"] = static_cast<int>(innerIt->m_Type);
+			chargingInfos.append(chargingData);
+		}
+
+		chargingNode["chargingNode"]["chargingInfos"] = chargingInfos;
+
+		chargingNodes.append(chargingNode);
+	}
+
+	//write to json
 	Json::Value doc;
+	doc["chargingNodes"] = chargingNodes;
 	doc["nodes"] = nodes;
 	doc["ways"] = ways;
 
@@ -496,10 +561,11 @@ void Converter::SaveToJson(const char* fileName)
 void Converter::ConvertOsmDataToJson(const char* osmFileName, const char* jsonFileName)
 {
 	LoadOsmFile(osmFileName);
-	SelectChargingNodes();
 	SelectHighwayNodesNeeded();
 	LoadHighwayNodes();
 	LoadHighways();
+	SelectChargingNodes();
+	ConnectChargingNodes();
 	SaveToJson(jsonFileName);
 }
 
@@ -508,8 +574,6 @@ void Converter::ReadPreprocessedDataFromJson(const char* fileName, std::shared_p
 	Json::Value root;
 	LoadJsonFile(fileName, root);
 	GetPreprocessedData(root, junctions, segments);
-
-
 }
 
 void Converter::SaveResultToGeoJson(std::shared_ptr<std::vector<const Junction*>> resultJunctions, const char* fileName)
