@@ -1,13 +1,45 @@
 
-#include "RoutePlanner.h"
+//#include "RoutePlanner.h"
+#define CURL_STATICLIB
 
 #include <chrono>
 
+#include <curl/curl.h>
+
+static size_t my_write(char* buffer, size_t size, size_t nmemb, void* param) 
+{
+    std::string& text = *static_cast<std::string*>(param);
+    std::string resultJson(buffer, nmemb);
+    size_t totalsize = size * nmemb;
+    return totalsize;
+}
+
 int main()
 {
-    std::unique_ptr<Converter> converter = std::make_unique<Converter>();
 
-    converter->ConvertOsmDataToJson("liechtenstein-latest.osm", "highwaydata.json");
+    CURL* curl;
+    CURLcode res;
+    std::string result;
+
+    curl_global_init(CURL_GLOBAL_DEFAULT);
+
+    curl = curl_easy_init();
+
+    if (curl)
+    {
+        curl_easy_setopt(curl, CURLOPT_URL, "https://api.open-elevation.com/api/v1/lookup?locations=10,10|20,20|41.161758,-8.583933");
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, my_write);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA);
+
+        res = curl_easy_perform(curl);
+        
+    }
+
+    return 0;
+
+    /*std::unique_ptr<Converter> converter = std::make_unique<Converter>();
+
+    converter->ConvertOsmDataToJson("liechtenstein-latest.osm", "highwaydata.json");*/
     //converter->ConvertOsmDataToJson("luxembourg-latest.osm", "highwaydata.json");
 
    /* std::unique_ptr<RoutePlanner> planner = std::make_unique<RoutePlanner>();
