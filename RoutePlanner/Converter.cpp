@@ -1,9 +1,12 @@
+#define CURL_STATICLIB
+
 #include "Converter.h"
 #include "Util.h"
 #include "TinyXML2/tinyxml2.h"
 #include "include/json/value.h"
 #include "include/json/writer.h"
 #include "include/json/reader.h"
+#include "curl/curl.h"
 
 #include <string>
 #include <cmath>
@@ -463,6 +466,59 @@ void Converter::ConnectChargingNodes()
 	}*/
 }
 
+std::string Converter::PrepareForElevationData()
+{
+	Json::Value nodedatas(Json::arrayValue);
+
+	for (auto it = m_Nodes->cbegin(); it != m_Nodes->cend(); it++)
+	{
+		Json::Value nodedata;
+		nodedata["latitude"] = it->second.m_Lat;
+		nodedata["longitude"] = it->second.m_Lon;
+
+		nodedatas.append(nodedata);
+	}
+
+	Json::Value doc;
+	doc["locations"] = nodedatas;
+	Json::StreamWriterBuilder builder;
+	std::string result = Json::writeString(builder, doc);
+	return result;
+}
+
+static size_t writeCallback(char* buffer, size_t size, size_t nmemb, void* param)
+{
+	std::string resultJson(buffer, nmemb);
+	size_t totalsize = size * nmemb;
+	return totalsize;
+}
+
+void Converter::GetElevationData(const std::string& url, const std::string& requestJson)
+{
+	CURL* curl;
+	CURLcode res;
+	std::string result;
+
+	curl_global_init(CURL_GLOBAL_DEFAULT);
+
+	curl = curl_easy_init();
+
+	if (curl)
+	{
+		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+		curl_easy_setopt(curl, CURLOPT_POST, 1);
+		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, requestJson.c_str());
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeCallback);
+		curl_easy_setopt(curl, CURLOPT_WRITEDATA);
+
+		res = curl_easy_perform(curl);
+
+		curl_easy_cleanup(curl);
+	}
+
+	curl_global_cleanup();
+}
+
 void Converter::SaveToJson(const char* fileName)
 {
 	//save nodes
@@ -566,6 +622,8 @@ void Converter::ConvertOsmDataToJson(const char* osmFileName, const char* jsonFi
 	LoadHighways();
 	SelectChargingNodes();
 	ConnectChargingNodes();
+	std::string json = PrepareForElevationData();
+	GetElevationData("https://api.open-elevation.com/api/v1/lookup?locations=41.161758,-8.583933|10,10|20,20", json);
 	SaveToJson(jsonFileName);
 }
 

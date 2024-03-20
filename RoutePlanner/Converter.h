@@ -46,7 +46,15 @@ private:
 
 	void ConnectChargingNodes();
 
-	void SaveToJson(const char* fileName);	
+	std::string PrepareForElevationData();
+
+	void GetElevationData(const std::string& url, const std::string& requestJson);
+
+	void SaveToJson(const char* fileName);
+
+	void CalculateAndSetLength(Way* way);
+
+	bool IsRoad(const char* roadType, const tinyxml2::XMLElement* tag);
 
 private:
 
@@ -55,13 +63,14 @@ private:
 	std::unique_ptr<std::vector<Way>> m_Ways;
 	std::unique_ptr<std::vector<ChargingNode>> m_ChargingNodes;
 
+	std::string m_ElevationDataJson;
+
 	tinyxml2::XMLDocument m_xDoc;
 
 	tinyxml2::XMLElement* m_Osm; 
 	tinyxml2::XMLElement* m_Way;
 	tinyxml2::XMLElement* m_Nd;
 
-	void CalculateAndSetLength(Way* way);
-	bool IsRoad(const char* roadType, const tinyxml2::XMLElement* tag);
+	
 };
 
