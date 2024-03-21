@@ -510,7 +510,13 @@ void Converter::GetElevationData(const std::string& url, const std::string& requ
 
 	if (curl)
 	{
+		struct curl_slist* chunk = NULL;
+
+		chunk = curl_slist_append(chunk, "Accept: application/json");
+		chunk = curl_slist_append(chunk, "Content-Type: application/json");
+
 		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
 		curl_easy_setopt(curl, CURLOPT_POST, 1);
 		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, requestJson.c_str());
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeCallback);
@@ -518,6 +524,7 @@ void Converter::GetElevationData(const std::string& url, const std::string& requ
 
 		res = curl_easy_perform(curl);
 
+		curl_slist_free_all(chunk);
 		curl_easy_cleanup(curl);
 	}
 
@@ -627,8 +634,9 @@ void Converter::ConvertOsmDataToJson(const char* osmFileName, const char* jsonFi
 	LoadHighways();
 	SelectChargingNodes();
 	ConnectChargingNodes();
-	std::string json = PrepareForElevationData();
-	GetElevationData("https://api.open-elevation.com/api/v1/lookup?locations=41.161758,-8.583933|10,10|20,20", json);
+	//std::string json = PrepareForElevationData();
+	//GetElevationData("https://api.open-elevation.com/api/v1/lookup?locations=41.161758,-8.583933|10,10|20,20", json);
+	//GetElevationData("https://api.open-elevation.com/api/v1/lookup", json);
 	SaveToJson(jsonFileName);
 }
 
