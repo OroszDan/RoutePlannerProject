@@ -39,5 +39,7 @@ struct Node
 	float_t m_Lon;
 
 	float_t m_Lat;
+
+	int16_t m_Elevation;
 };
 

@@ -22,6 +22,8 @@ public:
 
 	~Converter();
 
+	void GetElevationData();
+
 	void ConvertOsmDataToJson(const char* osmFileName, const char* jsonFileName);
 
 	void ReadPreprocessedDataFromJson(const char* fileName, std::shared_ptr<std::unordered_map<int64_t, Junction*>> junctions, std::shared_ptr<std::vector<Segment*>> segments);

@@ -30,6 +30,11 @@ Converter::~Converter()
 	m_Nd = nullptr;
 }
 
+void Converter::GetElevationData()
+{
+
+}
+
 void Converter::LoadJsonFile(const char* fileName, Json::Value& root)
 {
 	std::ifstream inputStream(fileName);
@@ -566,6 +571,7 @@ void Converter::ConvertOsmDataToJson(const char* osmFileName, const char* jsonFi
 	LoadHighways();
 	SelectChargingNodes();
 	ConnectChargingNodes();
+	GetElevationData();
 	SaveToJson(jsonFileName);
 }
 

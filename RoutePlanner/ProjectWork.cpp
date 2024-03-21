@@ -1,6 +1,5 @@
 
-//#include "RoutePlanner.h"
-#define CURL_STATICLIB
+#include "RoutePlanner.h"
 
 #include <chrono>
 
@@ -31,8 +30,7 @@ int main()
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, my_write);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA);
 
-        res = curl_easy_perform(curl);
-        
+        res = curl_easy_perform(curl);        
     }
 
     return 0;
