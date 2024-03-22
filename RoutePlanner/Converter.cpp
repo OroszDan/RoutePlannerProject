@@ -66,6 +66,37 @@ void Converter::LoadOsmFile(const char* name)
 
 void Converter::GetPreprocessedData(const Json::Value& root, std::shared_ptr<std::unordered_map<int64_t, Junction*>> Junctions, std::shared_ptr<std::vector<Segment*>> Segments)
 {	
+	for (auto it = root["chargingNodes"].begin(); it != root["chargingNodes"].end(); it++)
+	{
+		Json::Value chargingNode = it->get("chargingNode", Json::nullValue);
+
+		if (chargingNode != Json::nullValue)
+		{
+			int64_t id = chargingNode["id"].asInt64();
+			float_t lat = chargingNode["lat"].asFloat();
+			float_t lon = chargingNode["lon"].asFloat();
+
+			std::vector<ChargingData> chDatas = std::vector<ChargingData>();
+
+			for (auto it = chargingNode["chargingInfos"].begin(); it != chargingNode["chargingInfos"].end(); it++)
+			{
+				Json::Value chargingData = it->get("chargingData", Json::nullValue);
+
+				if (chargingData != Json::nullValue)
+				{
+					ChargingData data = ChargingData();
+					data.m_Output = chargingData["output"].asInt();	
+					data.m_Type = static_cast<ChargerType>(chargingData["type"].asInt());
+
+					chDatas.emplace_back(data);
+				}
+			}
+
+			ChargingJunction* chJunction = new ChargingJunction(id, lon, lat, chDatas);
+			Junctions->insert(std::make_pair(chJunction->m_Id, chJunction));
+		}
+	}
+
 	for (auto it = root["nodes"].begin(); it != root["nodes"].end(); ++it) 
 	{
 		Json::Value node = it->get("node", Json::nullValue);
@@ -146,7 +177,7 @@ void Converter::SelectHighwayNodesNeeded()
 
 					auto it = m_Node_Ids->find(ref);
 
-					if ((i == 0) || (m_Nd->NextSiblingElement("nd") == nullptr)) //first or last node
+					if ((i == 0) || (m_Nd->NextSiblingElement("nd") == nullptr)) //first or last chargingNode
 					{
 						if (it != m_Node_Ids->end())
 						{
@@ -645,6 +676,7 @@ void Converter::ReadPreprocessedDataFromJson(const char* fileName, std::shared_p
 	Json::Value root;
 	LoadJsonFile(fileName, root);
 	GetPreprocessedData(root, junctions, segments);
+	;
 }
 
 void Converter::SaveResultToGeoJson(std::shared_ptr<std::vector<const Junction*>> resultJunctions, const char* fileName)

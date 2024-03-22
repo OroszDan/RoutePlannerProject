@@ -7,8 +7,12 @@ class RoutePlanner
 public:
 	RoutePlanner();
 	void Initialize();
-	void FindFastestRoute(const float_t startLat, const float_t startLon, const float_t targetLat, const float_t targetLon, std::shared_ptr<std::vector<const Junction*>> resultJunctions);
+	void FindFastestRoute(const float_t startLat, const float_t startLon, const float_t targetLat, const float_t targetLon, const uint8_t minCharge, float_t batteryCharge, const int16_t batteryCapacity, std::shared_ptr<std::vector<const int16_t>> chargeSpeedData, std::shared_ptr<std::vector<const Junction*>> resultJunctions);
+	
+private:
+	float_t RechargeBattery(float_t& batteryCharge, const int16_t batteryCapacityInKWh, std::shared_ptr<std::vector<const int16_t>> chargeSpeedData, const int16_t maxChargingSpeedInKW);
 	Segment* FindContainingSegment(const Junction* junction);
+	ChargingJunction* SelectCharger(std::shared_ptr<std::vector<ChargingJunction*>> foundChargers, std::shared_ptr<std::vector<const int16_t>> chargeSpeedDataKW, ChargerType carChargerType);
 	Junction* GetMin(std::shared_ptr<std::unordered_map<int64_t, Junction*>> LE);
 	float_t GetHeuristicTravelTime(const Junction* start, const Junction* target);
 	float_t GetTravelTimeInMinutes(float_t distance, uint8_t maxSpeed);

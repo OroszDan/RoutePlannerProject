@@ -15,7 +15,7 @@ public:
 
 	void AddSegment(Segment* segment);
 
-	~Junction();
+	virtual ~Junction();
 
 	int64_t m_Id;
 
@@ -28,6 +28,8 @@ public:
 	float_t m_FastestRouteInMinutes;
 
 	float_t m_FastestRouteInMinutesHeuristic;
+
+	float_t m_BatteryCharge;
 
 	std::shared_ptr<std::vector<Segment*>> m_StartingSegments;
 };
