@@ -29,7 +29,7 @@ public:
 
 	float_t m_FastestRouteInMinutesHeuristic;
 
-	float_t m_BatteryCharge;
+	float_t m_BatteryChargeInPercent;
 
 	std::shared_ptr<std::vector<Segment*>> m_StartingSegments;
 };

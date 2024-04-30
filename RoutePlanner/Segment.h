@@ -19,13 +19,13 @@ public:
 
 	int64_t m_Id;
 
-	float_t m_Length;
+	float_t m_LengthInMetres;
 
 	Junction* m_From;
 
 	Junction* m_To;
 
-	uint8_t m_MaxSpeed;
+	uint8_t m_MaxSpeedInKmh;
 
 	std::shared_ptr<std::vector<Junction*>> m_InnerNodes;
 

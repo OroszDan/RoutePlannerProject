@@ -135,6 +135,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Car.h" />
+    <ClInclude Include="ChargerType.h" />
     <ClInclude Include="ChargingJunction.h" />
     <ClInclude Include="Converter.h" />
     <ClInclude Include="dist\json\json-forwards.h" />

@@ -1,11 +1,7 @@
 #pragma once
 
 #include "Junction.h"
-
-enum class ChargerType
-{
-	undefined, ccs, type2, chademo
-};
+#include "ChargerType.h"
 
 struct ChargingData
 {
