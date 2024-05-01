@@ -8,11 +8,12 @@ class RoutePlanner
 public:
 	RoutePlanner();
 	void Initialize();
-	void FindFastestRoute(const float_t startLat, const float_t startLon, const float_t targetLat, const float_t targetLon, const uint8_t minCharge, float_t batteryChargeInPercent, const int16_t batteryCapacityInKWh, std::shared_ptr<std::vector<int16_t>> chargeSpeedData, std::shared_ptr<std::vector<const Junction*>> resultJunctions);
+	void FindFastestRoute(const float_t startLat, const float_t startLon, const float_t targetLat, const float_t targetLon, const Car& car, std::shared_ptr<std::vector<const Junction*>> resultJunctions);
+
 	
 private:
-	float_t CalculateConsumptionInPercent(const Junction* start, const Junction* end, const Segment* route) const;
-	float_t RechargeBattery(float_t& batteryCharge, const int16_t batteryCapacityInKWh, std::shared_ptr<std::vector<int16_t>> chargeSpeedData, const int16_t maxChargingSpeedInKW);
+	float_t CalculateConsumptionInPercent(const Junction* start, const Junction* end, const Segment* route, const Car& car) const;
+	float_t RechargeBattery(float_t& batteryChargeInPercent, const Car& car);
 	Segment* FindContainingSegment(const Junction* junction);
 	ChargingJunction* SelectCharger(std::shared_ptr<std::vector<ChargingJunction*>> foundChargers, std::shared_ptr<std::vector<int16_t>> chargeSpeedDataKW, ChargerType carChargerType, float_t currentLat, float_t currentLon);
 	Junction* PopMin(std::shared_ptr<std::unordered_map<int64_t, Junction*>> LE);
@@ -27,6 +28,5 @@ private:
 
 	std::shared_ptr<std::unordered_map<int64_t, Junction*>> m_Junctions;
 	std::shared_ptr<std::vector<Segment*>> m_Segments;
-	std::unique_ptr<Car> m_Car;
 };
 

@@ -723,6 +723,23 @@ void Converter::SaveResultToGeoJson(std::shared_ptr<std::vector<const Junction*>
 	outputFileStream.close();
 }
 
+std::shared_ptr<std::vector<int16_t>> Converter::LoadChargingSpeedData(std::string carName)
+{
+	std::shared_ptr<std::vector<int16_t>> chargingData = std::make_shared<std::vector<int16_t>>();
+
+	std::ifstream file("ChargingSpeedDatas/" + carName + "_chargingdata.txt");
+
+	if (!file.is_open()) 
+		throw new std::exception("Error opening file.");
+
+	std::string line;
+	while (std::getline(file, line)) 
+		chargingData->emplace_back(std::stoi(line));
+
+	file.close();
+	return chargingData;
+}
+
 void Converter::CalculateAndSetLength(Way* way)
 {
 	float_t length = 0;
