@@ -63,7 +63,7 @@ void RoutePlanner::FindFastestRoute(const float_t startLat, const float_t startL
     while (S->size() < m_Junctions->size() && !routeFound && !chargerNotFound)
     {
         bool mustCharge = false;
-        ChargingJunction* selectedCharger;
+        ChargingJunction* selectedCharger = nullptr;
         const Junction* mustChargeJunction = nullptr;
         while (S->size() < m_Junctions->size() && !routeFound && !mustCharge)
         {
@@ -123,8 +123,7 @@ void RoutePlanner::FindFastestRoute(const float_t startLat, const float_t startL
             //find suitable charger
             if (foundChargers->size() > 0)
             {
-                selectedCharger = SelectCharger(foundChargers, car.m_ChargeSpeedDataInKW, ChargerType::undefined, 
-                        mustChargeJunction->m_Lat, mustChargeJunction->m_Lon);
+                selectedCharger = SelectCharger(foundChargers, car, mustChargeJunction->m_Lat, mustChargeJunction->m_Lon);
 
                 auto maxIt = std::max_element(selectedCharger->m_ChargingInfo.cbegin(), selectedCharger->m_ChargingInfo.cend(), 
                             [](const ChargingData data1, const ChargingData data2) {
@@ -133,11 +132,12 @@ void RoutePlanner::FindFastestRoute(const float_t startLat, const float_t startL
                 batteryChargeInPercent = selectedCharger->m_BatteryChargeInPercent;
                 
                 //charge the battery here
-                batteryChargingTimeInMinutes += RechargeBattery(batteryChargeInPercent, car);
+                batteryChargingTimeInMinutes += RechargeBattery(batteryChargeInPercent, car, maxIt->m_Output);
 
                 const Junction* currentJunction = selectedCharger;  //charger junction might be saved 2 times if route is found
 
                 Segment* currentSegment = nullptr;
+                std::shared_ptr<std::vector<const Junction*>> localResultJunctions = std::make_shared<std::vector<const Junction*>>();
 
                 while (currentJunction != start)
                 {
@@ -146,10 +146,10 @@ void RoutePlanner::FindFastestRoute(const float_t startLat, const float_t startL
                         break;
                     }
                     //resultjunctions sequence will be wrong probably
-                    resultJunctions->push_back(currentJunction);
+                    localResultJunctions->push_back(currentJunction);
                     currentSegment = currentJunction->m_FastestRouteNeighbor;
 
-                    SaveInnerJunctions(currentJunction, currentSegment, resultJunctions);
+                    SaveInnerJunctions(currentJunction, currentSegment, localResultJunctions);
 
                     //resultSegments->push_back(currentSegment);
                     currentJunction = currentSegment->GetEndJunction(currentJunction);
@@ -157,21 +157,24 @@ void RoutePlanner::FindFastestRoute(const float_t startLat, const float_t startL
 
                 if (startSegment)
                 {
-                    resultJunctions->push_back(currentJunction);
+                    localResultJunctions->push_back(currentJunction);
 
                     auto startIt = std::find(startSegment->m_InnerNodes->begin(),
                         startSegment->m_InnerNodes->end(), innerStart);
                     ptrdiff_t index = startIt - startSegment->m_InnerNodes->begin();
 
-                    SaveInnerJunctionsAtStart(resultJunctions->back(), startSegment, resultJunctions, index);
+                    SaveInnerJunctionsAtStart(localResultJunctions->back(), startSegment, localResultJunctions, index);
                 }
                 else
                 {
-                    resultJunctions->push_back(currentJunction);
+                    localResultJunctions->push_back(currentJunction);
                 }
+
+                resultJunctions->insert(resultJunctions->begin(), localResultJunctions->begin(), localResultJunctions->end());
 
                 //adjust new starting point which is the selected charger
 
+                startSegment = nullptr;
                 start = selectedCharger;
                 start->m_FastestRouteInMinutes = 0;
                 start->m_FastestRouteInMinutesHeuristic = 0;
@@ -194,7 +197,8 @@ void RoutePlanner::FindFastestRoute(const float_t startLat, const float_t startL
     if (S->size() < m_Junctions->size() && !chargerNotFound) //route found
     {
         //collect result
-        std::shared_ptr<std::vector<const Segment*>> resultSegments = std::make_shared<std::vector<const Segment*>>();
+        //std::shared_ptr<std::vector<const Segment*>> resultSegments = std::make_shared<std::vector<const Segment*>>();
+        std::shared_ptr<std::vector<const Junction*>> localResultJunctions = std::make_shared<std::vector<const Junction*>>();
 
         const Junction* currentJunction;
 
@@ -204,7 +208,7 @@ void RoutePlanner::FindFastestRoute(const float_t startLat, const float_t startL
                                                         targetSegment->m_InnerNodes->end(), target);
             ptrdiff_t startIndex = targetIt - targetSegment->m_InnerNodes->begin();
 
-            SaveInnerJunctionsAtTarget(u, targetSegment, resultJunctions, startIndex);
+            SaveInnerJunctionsAtTarget(u, targetSegment, localResultJunctions, startIndex);
 
             currentJunction = u;
         }
@@ -222,29 +226,31 @@ void RoutePlanner::FindFastestRoute(const float_t startLat, const float_t startL
                 break;
             }
 
-            resultJunctions->push_back(currentJunction);
+            localResultJunctions->push_back(currentJunction);
             currentSegment = currentJunction->m_FastestRouteNeighbor;
 
-            SaveInnerJunctions(currentJunction, currentSegment, resultJunctions);
+            SaveInnerJunctions(currentJunction, currentSegment, localResultJunctions);
 
-            resultSegments->push_back(currentSegment);     
+            //resultSegments->push_back(currentSegment);     
             currentJunction = currentSegment->GetEndJunction(currentJunction);
         }
 
         if (startSegment)
         {
-            resultJunctions->push_back(currentJunction);
+            localResultJunctions->push_back(currentJunction);
 
             auto startIt = std::find(startSegment->m_InnerNodes->begin(),
                 startSegment->m_InnerNodes->end(), innerStart);
             ptrdiff_t index = startIt - startSegment->m_InnerNodes->begin();
 
-            SaveInnerJunctionsAtStart(resultJunctions->back(), startSegment, resultJunctions, index);
+            SaveInnerJunctionsAtStart(localResultJunctions->back(), startSegment, localResultJunctions, index);
         }
         else
         {
-            resultJunctions->push_back(currentJunction);
+            localResultJunctions->push_back(currentJunction);
         }
+
+        resultJunctions->insert(resultJunctions->begin(), localResultJunctions->begin(), localResultJunctions->end());
     }
 }
 
@@ -270,18 +276,20 @@ float_t RoutePlanner::CalculateConsumptionInPercent(const Junction* start, const
 
 }
 
-float_t RoutePlanner::RechargeBattery(float_t& batteryChargeInPercent, const Car& car)
+float_t RoutePlanner::RechargeBattery(float_t& batteryChargeInPercent, const Car& car, const uint16_t maxChargeSpeedInKW)
 {
     const float_t onePercentBatteryCapacityInKWh = car.m_BatteryCapacityInKWh / 100.0f;
     float_t chargingTimeInMinutes = 0;
   
     for (auto it = car.m_ChargeSpeedDataInKW->cbegin() + car.m_MinChargeInPercent; it != car.m_ChargeSpeedDataInKW->cbegin() + car.m_MaxChargeInPercent; ++it)
     {
-        if (*it < car.m_MaxChargeSpeedInKW)
+        if (*it < maxChargeSpeedInKW)
            chargingTimeInMinutes += onePercentBatteryCapacityInKWh / *it * 60;
         else
-           chargingTimeInMinutes += onePercentBatteryCapacityInKWh / car.m_MaxChargeSpeedInKW * 60;
+           chargingTimeInMinutes += onePercentBatteryCapacityInKWh / maxChargeSpeedInKW * 60;
     }
+
+    batteryChargeInPercent = car.m_MaxChargeInPercent;
 
     return chargingTimeInMinutes;
 }
@@ -311,31 +319,15 @@ Segment* RoutePlanner::FindContainingSegment(const Junction* junction)
     return containingSegment;
 }
 
-ChargingJunction* RoutePlanner::SelectCharger(std::shared_ptr<std::vector<ChargingJunction*>> foundChargers, 
-                                                    std::shared_ptr<std::vector<int16_t>> chargeSpeedDataKW, ChargerType carChargerType, float_t currentLat, float_t currentLon)
+ChargingJunction* RoutePlanner::SelectCharger(std::shared_ptr<std::vector<ChargingJunction*>> foundChargers, const Car& car, float_t currentLat, float_t currentLon)
 {
-    auto maxValue = *std::max_element(chargeSpeedDataKW->cbegin(), chargeSpeedDataKW->cend());
-    /*std::remove_if(foundChargers->begin(), foundChargers->end(), [carChargerType](const ChargingJunction* current)
+    auto maxValue = *std::max_element(car.m_ChargeSpeedDataInKW->cbegin(), car.m_ChargeSpeedDataInKW->cend());
+    
+    std::erase_if(*foundChargers, [car](const ChargingJunction* current)
     {
-        bool found = false;
         for (auto it = current->m_ChargingInfo.cbegin(); it != current->m_ChargingInfo.cend(); it++)
         {
-            if (it->m_Type == carChargerType)
-            {
-                return false;
-            }
-           
-        }
-
-        return true;
-    });*/
-
-    std::erase_if(*foundChargers, [carChargerType](const ChargingJunction* current)
-    {
-        bool found = false;
-        for (auto it = current->m_ChargingInfo.cbegin(); it != current->m_ChargingInfo.cend(); it++)
-        {
-            if (it->m_Type == carChargerType)
+            if (it->m_Type == car.m_ChargerStandard)
             {
                 return false;
             }
@@ -353,6 +345,18 @@ ChargingJunction* RoutePlanner::SelectCharger(std::shared_ptr<std::vector<Chargi
         {
             return Util::CalculateDistanceBetweenTwoLatLonsInMetres(currentLat, elem1->m_Lat, currentLon, elem1->m_Lon)
                 < Util::CalculateDistanceBetweenTwoLatLonsInMetres(currentLat, elem2->m_Lat, currentLon, elem2->m_Lon);
+        });
+
+        std::erase_if((*minIt)->m_ChargingInfo, [car](const ChargingData current)
+        {
+            if (current.m_Type != car.m_ChargerStandard)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         });
 
         return *minIt;

@@ -10,7 +10,6 @@ struct Car
 {
 	std::string m_Name;
 	ChargerType m_ChargerStandard;
-	uint16_t m_MaxChargeSpeedInKW;
 	float_t m_ChargeInPercent;
 	float_t m_MinChargeInPercent;
 	float_t m_MaxChargeInPercent;

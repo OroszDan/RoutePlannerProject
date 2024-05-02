@@ -13,9 +13,9 @@ public:
 	
 private:
 	float_t CalculateConsumptionInPercent(const Junction* start, const Junction* end, const Segment* route, const Car& car) const;
-	float_t RechargeBattery(float_t& batteryChargeInPercent, const Car& car);
+	float_t RechargeBattery(float_t& batteryChargeInPercent, const Car& car, const uint16_t maxChargeSpeedInKW);
 	Segment* FindContainingSegment(const Junction* junction);
-	ChargingJunction* SelectCharger(std::shared_ptr<std::vector<ChargingJunction*>> foundChargers, std::shared_ptr<std::vector<int16_t>> chargeSpeedDataKW, ChargerType carChargerType, float_t currentLat, float_t currentLon);
+	ChargingJunction* SelectCharger(std::shared_ptr<std::vector<ChargingJunction*>> foundChargers, const Car& car, float_t currentLat, float_t currentLon);
 	Junction* PopMin(std::shared_ptr<std::unordered_map<int64_t, Junction*>> LE);
 	float_t GetHeuristicTravelTime(const Junction* start, const Junction* target);
 	float_t GetTravelTimeInMinutes(float_t distance, uint8_t maxSpeed);
