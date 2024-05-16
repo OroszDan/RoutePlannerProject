@@ -14,5 +14,16 @@ Segment::~Segment()
 
 Junction* Segment::GetEndJunction(const Junction * startJunction)
 {
-	return startJunction == m_From ? m_To : m_From;
+	if (startJunction == m_From)
+	{
+		return m_To;
+	}
+	else if (startJunction == m_To)
+	{
+		return m_From;
+	}
+	else
+	{
+		throw new std::exception("No endjunction can be found!");
+	}
 }
