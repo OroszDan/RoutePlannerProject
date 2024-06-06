@@ -529,38 +529,38 @@ static size_t writeCallback(char* buffer, size_t size, size_t nmemb, void* param
 	return totalsize;
 }
 
-void Converter::GetElevationData(const std::string& url, const std::string& requestJson)
-{
-	CURL* curl;
-	CURLcode res;
-	std::string result;
-
-	curl_global_init(CURL_GLOBAL_DEFAULT);
-
-	curl = curl_easy_init();
-
-	if (curl)
-	{
-		struct curl_slist* chunk = NULL;
-
-		chunk = curl_slist_append(chunk, "Accept: application/json");
-		chunk = curl_slist_append(chunk, "Content-Type: application/json");
-
-		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
-		curl_easy_setopt(curl, CURLOPT_POST, 1);
-		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, requestJson.c_str());
-		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeCallback);
-		curl_easy_setopt(curl, CURLOPT_WRITEDATA);
-
-		res = curl_easy_perform(curl);
-
-		curl_slist_free_all(chunk);
-		curl_easy_cleanup(curl);
-	}
-
-	curl_global_cleanup();
-}
+//void Converter::GetElevationData(const std::string& url, const std::string& requestJson)
+//{
+//	CURL* curl;
+//	CURLcode res;
+//	std::string result;
+//
+//	curl_global_init(CURL_GLOBAL_DEFAULT);
+//
+//	curl = curl_easy_init();
+//
+//	if (curl)
+//	{
+//		struct curl_slist* chunk = NULL;
+//
+//		chunk = curl_slist_append(chunk, "Accept: application/json");
+//		chunk = curl_slist_append(chunk, "Content-Type: application/json");
+//
+//		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+//		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
+//		curl_easy_setopt(curl, CURLOPT_POST, 1);
+//		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, requestJson.c_str());
+//		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeCallback);
+//		curl_easy_setopt(curl, CURLOPT_WRITEDATA);
+//
+//		res = curl_easy_perform(curl);
+//
+//		curl_slist_free_all(chunk);
+//		curl_easy_cleanup(curl);
+//	}
+//
+//	curl_global_cleanup();
+//}
 
 void Converter::SaveToJson(const char* fileName)
 {
