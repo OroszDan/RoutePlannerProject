@@ -7,11 +7,11 @@ RoutePlanner::RoutePlanner()
     m_Segments = std::make_shared<std::vector<Segment*>>();
 }
 
-void RoutePlanner::Initialize()
+void RoutePlanner::Initialize(std::string preprocessedFileName)
 {
     std::unique_ptr<Converter> converter = std::make_unique<Converter>();
 
-    converter->ReadPreprocessedDataFromJson("highwaydata.json", m_Junctions, m_Segments);
+    converter->ReadPreprocessedDataFromJson(preprocessedFileName, m_Junctions, m_Segments);
 }
 
 void RoutePlanner::FindFastestRoute(const float_t startLat, const float_t startLon, const float_t targetLat, const float_t targetLon, 
@@ -339,24 +339,28 @@ ChargingJunction* RoutePlanner::SelectCharger(std::shared_ptr<std::vector<Chargi
 
     if (foundChargers->size() > 0)
     {
+
+        for (auto it = foundChargers->begin(); it != foundChargers->end(); ++it)
+        {
+            std::erase_if((*it)->m_ChargingInfo, [car](const ChargingData current)
+            {
+                if (current.m_Type != car.m_ChargerStandard)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            });
+        }
+
         //find closest one
         auto minIt =
         std::min_element(foundChargers->begin(), foundChargers->end(), [currentLat, currentLon](const ChargingJunction* elem1, const ChargingJunction* elem2)
         {
             return Util::CalculateDistanceBetweenTwoLatLonsInMetres(currentLat, elem1->m_Lat, currentLon, elem1->m_Lon)
                 < Util::CalculateDistanceBetweenTwoLatLonsInMetres(currentLat, elem2->m_Lat, currentLon, elem2->m_Lon);
-        });
-
-        std::erase_if((*minIt)->m_ChargingInfo, [car](const ChargingData current)
-        {
-            if (current.m_Type != car.m_ChargerStandard)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
         });
 
         return *minIt;

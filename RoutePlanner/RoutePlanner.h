@@ -7,7 +7,7 @@ class RoutePlanner
 {
 public:
 	RoutePlanner();
-	void Initialize();
+	void Initialize(std::string preprocessedFileName);
 	void FindFastestRoute(const float_t startLat, const float_t startLon, const float_t targetLat, const float_t targetLon, const Car& car, std::shared_ptr<std::vector<const Junction*>> resultJunctions);
 
 	

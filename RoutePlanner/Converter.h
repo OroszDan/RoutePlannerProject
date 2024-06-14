@@ -27,15 +27,15 @@ public:
 
 	void ConvertOsmDataToJson(const char* osmFileName, const char* jsonFileName);
 
-	void ReadPreprocessedDataFromJson(const char* fileName, std::shared_ptr<std::unordered_map<int64_t, Junction*>> junctions, std::shared_ptr<std::vector<Segment*>> segments);
+	void ReadPreprocessedDataFromJson(std::string fileName, std::shared_ptr<std::unordered_map<int64_t, Junction*>> junctions, std::shared_ptr<std::vector<Segment*>> segments);
 
-	static void SaveResultToGeoJson(std::shared_ptr<std::vector<const Junction*>> resultJunctions, const char* filename);
+	static void SaveResultToGeoJson(std::shared_ptr<std::vector<const Junction*>> resultJunctions, std::string fileName);
 
-	static std::shared_ptr<std::vector<int16_t>> LoadChargingSpeedData(std::string carName);
+	static std::shared_ptr<std::vector<int16_t>> LoadChargingSpeedData(std::string fileName);
 
 private:
 
-	void LoadJsonFile(const char* fileName, Json::Value& root);
+	void LoadJsonFile(std::string fileName, Json::Value& root);
 
 	void LoadOsmFile(const char* fileName);
 

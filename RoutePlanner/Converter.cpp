@@ -38,7 +38,7 @@ void Converter::GetElevationData()
 
 }
 
-void Converter::LoadJsonFile(const char* fileName, Json::Value& root)
+void Converter::LoadJsonFile(std::string fileName, Json::Value& root)
 {
 	std::ifstream inputStream(fileName);
 	Json::Reader reader;
@@ -287,6 +287,19 @@ void Converter::SelectChargingNodes()
 							chargingNode.m_Lat = node->FindAttribute("lat")->float_tValue();
 							chargingNode.m_Lon = node->FindAttribute("lon")->float_tValue();
 
+							const tinyxml2::XMLElement* startTag = node->FirstChildElement("tag");
+							const tinyxml2::XMLElement* tag = startTag;
+
+							while (tag && strcmp(tag->FindAttribute("k")->Value(), "ele"))
+							{
+								tag = tag->NextSiblingElement("tag");
+							}
+
+							if (tag)
+							{
+								chargingNode.m_Elevation = tag->FindAttribute("v")->IntValue();
+							}
+
 							m_ChargingNodes->emplace_back(chargingNode);
 						}
 						
@@ -338,12 +351,25 @@ void Converter::LoadHighwayNodes()
 			lat = node->FindAttribute("lat");
 			lon = node->FindAttribute("lon");
 
-			Node highway_node = Node();
-			highway_node.m_Id = id->Int64Value();
-			highway_node.m_Lat = lat->float_tValue();
-			highway_node.m_Lon = lon->float_tValue();
+			Node highwayNode = Node();
+			highwayNode.m_Id = id->Int64Value();
+			highwayNode.m_Lat = lat->float_tValue();
+			highwayNode.m_Lon = lon->float_tValue();
 
-			m_Nodes->insert(std::make_pair(highway_node.m_Id, highway_node));
+			const tinyxml2::XMLElement* startTag = node->FirstChildElement("tag");
+			const tinyxml2::XMLElement* tag = startTag;
+
+			while (tag && strcmp(tag->FindAttribute("k")->Value(), "ele"))
+			{
+				tag = tag->NextSiblingElement("tag");
+			}
+
+			if (tag)
+			{
+				highwayNode.m_Elevation = tag->FindAttribute("v")->IntValue();
+			}
+
+			m_Nodes->insert(std::make_pair(highwayNode.m_Id, highwayNode));
 		}
 
 		node = node->NextSiblingElement("node");
@@ -573,6 +599,7 @@ void Converter::SaveToJson(const char* fileName)
 		node["node"]["id"] = it->second.m_Id;
 		node["node"]["lat"] = it->second.m_Lat;
 		node["node"]["lon"] = it->second.m_Lon;
+		node["node"]["ele"] = it->second.m_Elevation;
 
 		nodes.append(node);
 	}
@@ -622,6 +649,7 @@ void Converter::SaveToJson(const char* fileName)
 		chargingNode["chargingNode"]["id"] = it->m_Id;
 		chargingNode["chargingNode"]["lat"] = it->m_Lat;
 		chargingNode["chargingNode"]["lon"] = it->m_Lon;
+		chargingNode["chargingNode"]["ele"] = it->m_Elevation;
 
 		Json::Value chargingInfos(Json::arrayValue);
 
@@ -671,7 +699,7 @@ void Converter::ConvertOsmDataToJson(const char* osmFileName, const char* jsonFi
 	SaveToJson(jsonFileName);
 }
 
-void Converter::ReadPreprocessedDataFromJson(const char* fileName, std::shared_ptr<std::unordered_map<int64_t, Junction*>> junctions, std::shared_ptr<std::vector<Segment*>> segments)
+void Converter::ReadPreprocessedDataFromJson(std::string fileName, std::shared_ptr<std::unordered_map<int64_t, Junction*>> junctions, std::shared_ptr<std::vector<Segment*>> segments)
 {
 	Json::Value root;
 	LoadJsonFile(fileName, root);
@@ -679,7 +707,7 @@ void Converter::ReadPreprocessedDataFromJson(const char* fileName, std::shared_p
 	;
 }
 
-void Converter::SaveResultToGeoJson(std::shared_ptr<std::vector<const Junction*>> resultJunctions, const char* fileName)
+void Converter::SaveResultToGeoJson(std::shared_ptr<std::vector<const Junction*>> resultJunctions, std::string fileName)
 {
 	Json::Value root;
 
@@ -723,11 +751,11 @@ void Converter::SaveResultToGeoJson(std::shared_ptr<std::vector<const Junction*>
 	outputFileStream.close();
 }
 
-std::shared_ptr<std::vector<int16_t>> Converter::LoadChargingSpeedData(std::string carName)
+std::shared_ptr<std::vector<int16_t>> Converter::LoadChargingSpeedData(std::string fileName)
 {
 	std::shared_ptr<std::vector<int16_t>> chargingData = std::make_shared<std::vector<int16_t>>();
 
-	std::ifstream file("ChargingSpeedDatas/" + carName + "_chargingdata.txt");
+	std::ifstream file(fileName);
 
 	if (!file.is_open()) 
 		throw new std::exception("Error opening file.");

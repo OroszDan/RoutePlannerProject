@@ -4,17 +4,19 @@
 #include "../RoutePlanner/RoutePlanner.h"
 #include <chrono>
 
+#define PROJDIR "C:/Users/Orosz Dániel/source/repos/RoutePlannerProject"
+
 TEST(TestCaseName, TestName) {
     EXPECT_EQ(1, 1);
     EXPECT_TRUE(true);
 }
 
-TEST(Test1, RouteTest) {
+TEST(RoutePlannerTests, RouteTest) {
     std::unique_ptr<RoutePlanner> planner = std::make_unique<RoutePlanner>();
 
     std::shared_ptr<std::vector<const Junction*>> resultJunctions = std::make_shared<std::vector<const Junction*>>();
 
-    planner->Initialize();
+    planner->Initialize(std::string(PROJDIR) + "/data/PreprocessedMaps/highwaydata.json");
 
     Car car = Car();
     car.m_Name = "peugeot_208";
@@ -26,7 +28,8 @@ TEST(Test1, RouteTest) {
     car.m_WeightInKg = 1500;
     car.m_BatteryCapacityInKWh = 46.3f;
     car.m_NEDCConsumptionOnOneMetreInPercent = 0.000244f; //100 km 24.4% energy
-    car.m_ChargeSpeedDataInKW = Converter::LoadChargingSpeedData(car.m_Name);
+    car.m_ChargeSpeedDataInKW = Converter::LoadChargingSpeedData(
+        std::string(PROJDIR) + "/data/ChargingSpeedDatas/" + car.m_Name + "_chargingdata.txt");
 
     std::chrono::high_resolution_clock::time_point start(
         std::chrono::high_resolution_clock::now());
@@ -39,5 +42,5 @@ TEST(Test1, RouteTest) {
 
     //std::cout << (std::chrono::high_resolution_clock::now() - start); //0.0658705 sec runtime
 
-    Converter::SaveResultToGeoJson(resultJunctions, "../RoutePlannerClient/wwwroot/results/result.json");
+    Converter::SaveResultToGeoJson(resultJunctions, std::string(PROJDIR) + "/RoutePlannerClient/wwwroot/results/result.json");
 }
