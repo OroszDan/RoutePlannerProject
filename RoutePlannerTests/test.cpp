@@ -4,7 +4,7 @@
 #include "../RoutePlanner/RoutePlanner.h"
 #include <chrono>
 
-#define PROJDIR "C:/Users/Orosz Dániel/source/repos/RoutePlannerProject"
+constexpr auto PROJDIR = "C:/Users/Orosz Dániel/source/repos/RoutePlannerProject";
 
 TEST(TestCaseName, TestName) {
     EXPECT_EQ(1, 1);
@@ -17,7 +17,7 @@ TEST(RoutePlannerTests, RouteTest) {
     std::shared_ptr<std::vector<const Junction*>> resultJunctions = std::make_shared<std::vector<const Junction*>>();
 
     planner->Initialize(std::string(PROJDIR) + "/data/PreprocessedMaps/highwaydata.json");
-
+     
     Car car = Car();
     car.m_Name = "peugeot_208";
     car.m_DragCoefficient = 0.28;
@@ -27,7 +27,7 @@ TEST(RoutePlannerTests, RouteTest) {
     car.m_ChargeInPercent = 17;
     car.m_WeightInKg = 1500;
     car.m_BatteryCapacityInKWh = 46.3f;
-    car.m_NEDCConsumptionOnOneMetreInPercent = 0.000244f; //100 km 24.4% energy
+    car.m_NEDCConsumptionOnOneMetreInPercent = 0.244f / 1000; //100 km 24.4% energy
     car.m_ChargeSpeedDataInKW = Converter::LoadChargingSpeedData(
         std::string(PROJDIR) + "/data/ChargingSpeedDatas/" + car.m_Name + "_chargingdata.txt");
 
@@ -43,4 +43,11 @@ TEST(RoutePlannerTests, RouteTest) {
     //std::cout << (std::chrono::high_resolution_clock::now() - start); //0.0658705 sec runtime
 
     Converter::SaveResultToGeoJson(resultJunctions, std::string(PROJDIR) + "/RoutePlannerClient/wwwroot/results/result.json");
+}
+
+TEST(ConverterTests, ConverterTest) {
+
+    std::unique_ptr<Converter> converter = std::make_unique<Converter>();
+
+    converter->ConvertOsmDataToJson(std::string(PROJDIR) + "/data/RawMaps/liechtenstein-latest-srtm.osm", std::string(PROJDIR) + "/data/PreprocessedMaps/highwaydata.json");
 }
