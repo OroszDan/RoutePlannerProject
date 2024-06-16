@@ -1,8 +1,8 @@
 #include "Junction.h"
 #include "Segment.h"
 
-Junction::Junction(int64_t id, float_t lon, float_t lat):
-	m_Id(id), m_Lon(lon), m_Lat(lat), m_FastestRouteInMinutes(FLT_MAX), m_FastestRouteNeighbor(nullptr)
+Junction::Junction(int64_t id, float_t lon, float_t lat, float_t elevation):
+	m_Id(id), m_Lon(lon), m_Lat(lat), m_Elevation(elevation), m_FastestRouteInMinutes(FLT_MAX), m_FastestRouteNeighbor(nullptr)
 {
 	m_StartingSegments = std::make_shared<std::vector<Segment*>>();
 }

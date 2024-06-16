@@ -11,7 +11,7 @@ class Junction
 {
 public:
 
-	Junction(int64_t id, float_t lon, float_t lat);
+	Junction(int64_t id, float_t lon, float_t lat, float_t elevation);
 
 	void AddSegment(Segment* segment);
 
@@ -22,6 +22,8 @@ public:
 	float_t m_Lon;
 
 	float_t m_Lat;
+
+	float_t m_Elevation;
 
 	Segment* m_FastestRouteNeighbor;
 
@@ -42,6 +44,6 @@ struct Node
 
 	float_t m_Lat;
 
-	int16_t m_Elevation;
+	float_t m_Elevation;
 };
 

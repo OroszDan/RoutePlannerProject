@@ -21,6 +21,8 @@ public:
 
 	float_t m_LengthInMetres;
 
+	float_t m_Slope;
+
 	Junction* m_From;
 
 	Junction* m_To;

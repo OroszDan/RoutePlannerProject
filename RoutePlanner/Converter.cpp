@@ -51,9 +51,9 @@ void Converter::LoadJsonFile(std::string fileName, Json::Value& root)
 	}
 }
 
-void Converter::LoadOsmFile(const char* name)
+void Converter::LoadOsmFile(std::string name)
 {
-	auto err = m_xDoc.LoadFile(name);
+	auto err = m_xDoc.LoadFile(name.c_str());
 
 	if (err != tinyxml2::XML_SUCCESS)
 	{
@@ -75,6 +75,7 @@ void Converter::GetPreprocessedData(const Json::Value& root, std::shared_ptr<std
 			int64_t id = chargingNode["id"].asInt64();
 			float_t lat = chargingNode["lat"].asFloat();
 			float_t lon = chargingNode["lon"].asFloat();
+			float_t elevation = chargingNode["ele"].asFloat();
 
 			std::vector<ChargingData> chDatas = std::vector<ChargingData>();
 
@@ -92,7 +93,7 @@ void Converter::GetPreprocessedData(const Json::Value& root, std::shared_ptr<std
 				}
 			}
 
-			ChargingJunction* chJunction = new ChargingJunction(id, lon, lat, chDatas);
+			ChargingJunction* chJunction = new ChargingJunction(id, lon, lat, elevation, chDatas);
 			Junctions->insert(std::make_pair(chJunction->m_Id, chJunction));
 		}
 	}
@@ -106,8 +107,9 @@ void Converter::GetPreprocessedData(const Json::Value& root, std::shared_ptr<std
 			int64_t id = node["id"].asInt64();
 			float_t lat = node["lat"].asFloat();
 			float_t lon = node["lon"].asFloat();
+			float_t elevation = node["ele"].asFloat();
 			
-			Junction* junction = new Junction(id, lon, lat);
+			Junction* junction = new Junction(id, lon, lat, elevation);
 			Junctions->insert(std::make_pair(junction->m_Id, junction));
 		}	
 	}
@@ -297,7 +299,11 @@ void Converter::SelectChargingNodes()
 
 							if (tag)
 							{
-								chargingNode.m_Elevation = tag->FindAttribute("v")->IntValue();
+								chargingNode.m_Elevation = tag->FindAttribute("v")->float_tValue();
+							}
+							else
+							{
+								throw new std::exception("Node does not have elevation data!");
 							}
 
 							m_ChargingNodes->emplace_back(chargingNode);
@@ -366,7 +372,11 @@ void Converter::LoadHighwayNodes()
 
 			if (tag)
 			{
-				highwayNode.m_Elevation = tag->FindAttribute("v")->IntValue();
+				highwayNode.m_Elevation = tag->FindAttribute("v")->float_tValue();
+			}
+			else
+			{
+				throw new std::exception("Node does not have elevation data!");
 			}
 
 			m_Nodes->insert(std::make_pair(highwayNode.m_Id, highwayNode));
@@ -528,6 +538,23 @@ void Converter::ConnectChargingNodes()
 	}*/
 }
 
+void Converter::SetSegmentSlopeData(std::shared_ptr<std::vector<Segment*>> segments)
+{
+	for (auto it = segments->begin(); it != segments->end(); ++it)
+	{
+		(*it)->m_Slope = CalculateSlope((*it)->m_LengthInMetres,
+			(*it)->m_From->m_Elevation, (*it)->m_To->m_Elevation);
+	}
+}
+
+float_t Converter::CalculateSlope(float_t distanceInMetres, float_t startElevationInMetres, float_t endElevationInMetres)
+{
+	// important!!!
+	// when traveling in the opposite direction an uphill is a downhill!!!
+
+	return (endElevationInMetres - startElevationInMetres) / distanceInMetres;
+}
+
 std::string Converter::PrepareForElevationData()
 {
 	Json::Value nodedatas(Json::arrayValue);
@@ -588,7 +615,7 @@ static size_t writeCallback(char* buffer, size_t size, size_t nmemb, void* param
 //	curl_global_cleanup();
 //}
 
-void Converter::SaveToJson(const char* fileName)
+void Converter::SaveToJson(std::string fileName)
 {
 	//save nodes
 	Json::Value nodes(Json::arrayValue);
@@ -685,7 +712,7 @@ void Converter::SaveToJson(const char* fileName)
 	outputFileStream.close();
 }
 
-void Converter::ConvertOsmDataToJson(const char* osmFileName, const char* jsonFileName)
+void Converter::ConvertOsmDataToJson(std::string osmFileName, std::string jsonFileName)
 {
 	LoadOsmFile(osmFileName);
 	SelectHighwayNodesNeeded();
@@ -704,6 +731,7 @@ void Converter::ReadPreprocessedDataFromJson(std::string fileName, std::shared_p
 	Json::Value root;
 	LoadJsonFile(fileName, root);
 	GetPreprocessedData(root, junctions, segments);
+	SetSegmentSlopeData(segments);
 	;
 }
 

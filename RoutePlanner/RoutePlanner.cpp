@@ -256,8 +256,8 @@ void RoutePlanner::FindFastestRoute(const float_t startLat, const float_t startL
 
 float_t RoutePlanner::CalculateConsumptionInPercent(const Junction* start, const Junction* end, const Segment* route, const Car& car) const
 {
-    float_t slope = 0;  //calculation needed in the future
-    int32_t balanceConstant = 13720000;
+    int32_t balanceConst1 = 13720000;
+    int32_t balanceConst2 = 13720000;
 
     //peugeot e 208 range
     // NEDC: 410km
@@ -270,7 +270,7 @@ float_t RoutePlanner::CalculateConsumptionInPercent(const Junction* start, const
     //calculate consumption on 1 meter
 
      float_t result = route->m_LengthInMetres * (car.m_NEDCConsumptionOnOneMetreInPercent + 
-           (car.m_DragCoefficient * route->m_MaxSpeedInKmh * route->m_MaxSpeedInKmh + car.m_WeightInKg * slope) / balanceConstant);
+           (car.m_DragCoefficient * route->m_MaxSpeedInKmh * route->m_MaxSpeedInKmh) / balanceConst1 + (car.m_WeightInKg * route->m_Slope) / balanceConst2);
 
      return result;
 

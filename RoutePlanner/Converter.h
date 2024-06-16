@@ -25,21 +25,23 @@ public:
 
 	void GetElevationData();
 
-	void ConvertOsmDataToJson(const char* osmFileName, const char* jsonFileName);
+	void ConvertOsmDataToJson(std::string osmFileName, std::string jsonFileName);
 
-	void ReadPreprocessedDataFromJson(std::string fileName, std::shared_ptr<std::unordered_map<int64_t, Junction*>> junctions, std::shared_ptr<std::vector<Segment*>> segments);
+	static void ReadPreprocessedDataFromJson(std::string fileName, std::shared_ptr<std::unordered_map<int64_t, Junction*>> junctions, std::shared_ptr<std::vector<Segment*>> segments);
 
+	static void SetSegmentSlopeData(std::shared_ptr<std::vector<Segment*>> segments);
+	
 	static void SaveResultToGeoJson(std::shared_ptr<std::vector<const Junction*>> resultJunctions, std::string fileName);
 
 	static std::shared_ptr<std::vector<int16_t>> LoadChargingSpeedData(std::string fileName);
 
 private:
 
-	void LoadJsonFile(std::string fileName, Json::Value& root);
+	static void LoadJsonFile(std::string fileName, Json::Value& root);
 
-	void LoadOsmFile(const char* fileName);
+	void LoadOsmFile(std::string name);
 
-	void GetPreprocessedData(const Json::Value& root, std::shared_ptr<std::unordered_map<int64_t, Junction*>> Junctions, std::shared_ptr<std::vector<Segment*>> Segments);
+	static void GetPreprocessedData(const Json::Value& root, std::shared_ptr<std::unordered_map<int64_t, Junction*>> Junctions, std::shared_ptr<std::vector<Segment*>> Segments);
 
 	void SelectHighwayNodesNeeded();
 
@@ -51,11 +53,13 @@ private:
 
 	void ConnectChargingNodes();
 
+	static float_t CalculateSlope(float_t distanceInMetres, float_t startElevationInMetres, float_t endElevationInMetres);
+
 	std::string PrepareForElevationData();
 
 	void GetElevationData(const std::string& url, const std::string& requestJson);
 
-	void SaveToJson(const char* fileName);
+	void SaveToJson(std::string fileName);
 
 	void CalculateAndSetLength(Way* way);
 

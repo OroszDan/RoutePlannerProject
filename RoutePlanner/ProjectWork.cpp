@@ -39,7 +39,7 @@ int main()
 
     std::unique_ptr<Converter> converter = std::make_unique<Converter>();
 
-    converter->ConvertOsmDataToJson("../data/RawMaps/liechtenstein-latest-srtm.osm", "highwaydata.json");
+    converter->ConvertOsmDataToJson("../data/RawMaps/liechtenstein-latest-srtm.osm", "../data/PreprocessedMaps/highwaydata.json");
     //converter->ConvertOsmDataToJson("luxembourg-latest.osm", "highwaydata.json");
 
     //std::unique_ptr<RoutePlanner> planner = std::make_unique<RoutePlanner>();
