@@ -270,7 +270,7 @@ float_t RoutePlanner::CalculateConsumptionInPercent(const Junction* start, const
     //calculate consumption on 1 meter
 
      float_t result = route->m_LengthInMetres * (car.m_NEDCConsumptionOnOneMetreInPercent + 
-           (car.m_DragCoefficient * route->m_MaxSpeedInKmh * route->m_MaxSpeedInKmh) / balanceConst1 + (car.m_WeightInKg * route->m_Slope) / balanceConst2);
+           (car.m_DragCoefficient * route->m_MaxSpeedInKmh * route->m_MaxSpeedInKmh) / balanceConst1 /*+ (car.m_WeightInKg * route->m_Slope) / balanceConst2*/);
 
      return result;
 

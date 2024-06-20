@@ -779,11 +779,11 @@ void Converter::SaveResultToGeoJson(std::shared_ptr<std::vector<const Junction*>
 	outputFileStream.close();
 }
 
-std::shared_ptr<std::vector<int16_t>> Converter::LoadChargingSpeedData(std::string fileName)
+std::shared_ptr<std::vector<int16_t>> Converter::LoadChargingSpeedData(std::string filePath)
 {
 	std::shared_ptr<std::vector<int16_t>> chargingData = std::make_shared<std::vector<int16_t>>();
 
-	std::ifstream file(fileName);
+	std::ifstream file(filePath);
 
 	if (!file.is_open()) 
 		throw new std::exception("Error opening file.");
@@ -794,6 +794,37 @@ std::shared_ptr<std::vector<int16_t>> Converter::LoadChargingSpeedData(std::stri
 
 	file.close();
 	return chargingData;
+}
+
+Car Converter::LoadCarData(std::string carDataFilePath, std::string chargingDataFilePath)
+{
+	std::unique_ptr<std::vector<std::string>> carData = std::make_unique<std::vector<std::string>>();
+
+	std::ifstream file(carDataFilePath);
+
+	if (!file.is_open())
+		throw new std::exception("Error opening file.");
+
+	std::string line;
+	while (std::getline(file, line))
+		carData->emplace_back(std::string(line));
+
+	file.close();
+
+	Car car = Car();
+
+	car.m_Name = carData->at(0);
+	car.m_DragCoefficient = std::stof(carData->at(1));
+	car.m_ChargerStandard = static_cast<ChargerType>(std::stoi(carData->at(2)));
+	car.m_MinChargeInPercent = std::stof(carData->at(3));
+	car.m_MaxChargeInPercent = std::stof(carData->at(4));
+	car.m_ChargeInPercent = std::stof(carData->at(5));
+	car.m_WeightInKg = std::stoi(carData->at(6));
+	car.m_BatteryCapacityInKWh = std::stof(carData->at(7));
+	car.m_NEDCConsumptionOnOneMetreInPercent = std::stof(carData->at(8));
+	car.m_ChargeSpeedDataInKW = LoadChargingSpeedData(chargingDataFilePath);
+
+	return car;
 }
 
 void Converter::CalculateAndSetLength(Way* way)

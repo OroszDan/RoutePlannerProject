@@ -5,6 +5,7 @@
 #include "include/json/value.h"
 #include "include/json/writer.h"
 #include "ChargingJunction.h"
+#include "Car.h"
 
 
 #include <set>
@@ -33,7 +34,7 @@ public:
 	
 	static void SaveResultToGeoJson(std::shared_ptr<std::vector<const Junction*>> resultJunctions, std::string fileName);
 
-	static std::shared_ptr<std::vector<int16_t>> LoadChargingSpeedData(std::string fileName);
+	static Car LoadCarData(std::string carDataFilePath, std::string chargingDataFilePath);
 
 private:
 
@@ -42,6 +43,8 @@ private:
 	void LoadOsmFile(std::string name);
 
 	static void GetPreprocessedData(const Json::Value& root, std::shared_ptr<std::unordered_map<int64_t, Junction*>> Junctions, std::shared_ptr<std::vector<Segment*>> Segments);
+
+	static std::shared_ptr<std::vector<int16_t>> LoadChargingSpeedData(std::string filePath);
 
 	void SelectHighwayNodesNeeded();
 
