@@ -64,7 +64,7 @@ void RoutePlanner::FindFastestRoute(const float_t startLat, const float_t startL
     {
         bool mustCharge = false;
         ChargingJunction* selectedCharger = nullptr;
-        const Junction* mustChargeJunction = nullptr;
+        Junction* mustChargeJunction = nullptr;
         while (S->size() < m_Junctions->size() && !routeFound && !mustCharge)
         {
             //getmin(and delete)
@@ -120,6 +120,8 @@ void RoutePlanner::FindFastestRoute(const float_t startLat, const float_t startL
 
         if (!routeFound)
         {
+            FindChargersWithinProximity(foundChargers, mustChargeJunction, target, car);
+
             //find suitable charger
             if (foundChargers->size() > 0)
             {
@@ -413,6 +415,86 @@ Junction* RoutePlanner::GetClosestJunction(const float_t lat, const float_t lon)
     });
 
     return (*minIt).second;
+}
+
+Junction* RoutePlanner::PopFirst(std::shared_ptr<std::unordered_map<int64_t, Junction*>> LE)
+{
+    Junction* ret = LE->begin()->second;
+    LE->erase(LE->begin());
+
+    return ret;
+}
+
+void RoutePlanner::FindChargersWithinProximity(std::shared_ptr<std::vector<ChargingJunction*>> foundChargers, Junction* startJunction, const Junction* targetJunction, const Car& car)
+{
+    const float_t maxProximityTimeInMinutes = 10;
+
+    Junction* start = startJunction;
+
+    std::shared_ptr<std::unordered_map<int64_t, int64_t>> S = std::make_shared<std::unordered_map<int64_t, int64_t>>(); // already proceeded
+    std::shared_ptr<std::unordered_map<int64_t, Junction*>> LE = std::make_shared<std::unordered_map<int64_t, Junction*>>();  // already recognized, but not yet proceeded
+    std::unique_ptr<std::unordered_map<int64_t, float_t>> proximityTimes = std::make_unique<std::unordered_map<int64_t, float_t>>();
+    bool done = false;
+
+    Junction* u = nullptr;
+    Junction* endJunction = nullptr;
+
+    LE->insert(std::make_pair(startJunction->m_Id, startJunction));
+    S->insert(std::make_pair(startJunction->m_Id, startJunction->m_Id));
+    proximityTimes->insert(std::make_pair(startJunction->m_Id, 0));
+    
+    //graph traverse algorithm
+    while (S->size() < m_Junctions->size() && !done)
+    {
+        //getmin(and delete)       
+        //u = PopMin(LE);
+        if (!LE->empty())
+        {
+            u = PopFirst(LE);
+        }
+        else
+        {
+            done = true;
+        }
+
+        if (ChargingJunction* chargerPtr = dynamic_cast<ChargingJunction*>(u))  //type check
+        {
+            if (u != startJunction)
+            {
+                foundChargers->emplace_back(chargerPtr);
+            }
+        }
+
+        float_t proximityTime = proximityTimes->find(u->m_Id)->second;
+
+        for (auto it = u->m_StartingSegments->begin(); it != u->m_StartingSegments->end() && !done; ++it)
+        {
+            endJunction = (*it)->GetEndJunction(u);
+            //insert neighbor 
+            
+            float_t travelTimeInMinutes = GetTravelTimeInMinutes((*it)->m_LengthInMetres, (*it)->m_MaxSpeedInKmh);
+
+            if (u->m_FastestRouteInMinutes + travelTimeInMinutes < endJunction->m_FastestRouteInMinutes)
+            {
+                endJunction->m_FastestRouteInMinutes =
+                    u->m_FastestRouteInMinutes + travelTimeInMinutes;
+                endJunction->m_FastestRouteNeighbor = *it;
+
+                //need to calculate consumption
+                endJunction->m_BatteryChargeInPercent = u->m_BatteryChargeInPercent - CalculateConsumptionInPercent(u, endJunction, *it, car);
+            }
+
+            if (!S->contains(endJunction->m_Id) && !LE->contains(endJunction->m_Id) 
+                && proximityTime + travelTimeInMinutes < maxProximityTimeInMinutes 
+                && endJunction->m_BatteryChargeInPercent > car.m_MinChargeInPercent)
+            {
+                endJunction->m_FastestRouteInMinutesHeuristic = GetHeuristicTravelTime(endJunction, targetJunction);
+                LE->insert(std::make_pair(endJunction->m_Id, endJunction));
+                S->insert(std::make_pair(endJunction->m_Id, endJunction->m_Id));
+                proximityTimes->insert(std::make_pair(endJunction->m_Id, proximityTime + travelTimeInMinutes));
+            }
+        }
+    }      
 }
 
 void RoutePlanner::SaveInnerJunctions(const Junction* referenceJunction, const Segment* segment, std::shared_ptr<std::vector<const Junction*>> junctions)
