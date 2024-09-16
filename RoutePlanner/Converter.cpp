@@ -33,11 +33,6 @@ Converter::~Converter()
 	m_Nd = nullptr;
 }
 
-void Converter::GetElevationData()
-{
-
-}
-
 void Converter::LoadJsonFile(std::string fileName, Json::Value& root)
 {
 	std::ifstream inputStream(fileName);

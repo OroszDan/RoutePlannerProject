@@ -24,8 +24,6 @@ public:
 
 	~Converter();
 
-	void GetElevationData();
-
 	void ConvertOsmDataToJson(std::string osmFileName, std::string jsonFileName);
 
 	static void ReadPreprocessedDataFromJson(std::string fileName, std::shared_ptr<std::unordered_map<int64_t, Junction*>> junctions, std::shared_ptr<std::vector<Segment*>> segments);
@@ -36,6 +34,8 @@ public:
 
 	static Car LoadCarData(std::string carDataFilePath, std::string chargingDataFilePath);
 
+	static std::shared_ptr<std::vector<int16_t>> LoadChargingSpeedData(std::string filePath);
+
 private:
 
 	static void LoadJsonFile(std::string fileName, Json::Value& root);
@@ -44,7 +44,6 @@ private:
 
 	static void GetPreprocessedData(const Json::Value& root, std::shared_ptr<std::unordered_map<int64_t, Junction*>> Junctions, std::shared_ptr<std::vector<Segment*>> Segments);
 
-	static std::shared_ptr<std::vector<int16_t>> LoadChargingSpeedData(std::string filePath);
 
 	void SelectHighwayNodesNeeded();
 
@@ -59,8 +58,6 @@ private:
 	static float_t CalculateSlope(float_t distanceInMetres, float_t startElevationInMetres, float_t endElevationInMetres);
 
 	std::string PrepareForElevationData();
-
-	void GetElevationData(const std::string& url, const std::string& requestJson);
 
 	void SaveToJson(std::string fileName);
 

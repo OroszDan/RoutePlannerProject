@@ -2,40 +2,43 @@
 #include "RoutePlanner.h"
 #include "Car.h"
 
+#include "crow.h"
+
 #include <chrono>
 
-#include <curl/curl.h>
-
-static size_t my_write(char* buffer, size_t size, size_t nmemb, void* param) 
-{
-    std::string& text = *static_cast<std::string*>(param);
-    std::string resultJson(buffer, nmemb);
-    size_t totalsize = size * nmemb;
-    return totalsize;
-}
 
 int main()
 {
 
-    /*CURL* curl;
-    CURLcode res;
-    std::string result;
+    crow::SimpleApp app; //define your crow application
 
-    curl_global_init(CURL_GLOBAL_DEFAULT);
+    //define your endpoint at the root directory
+    CROW_ROUTE(app, "/json/<int>")
+        .methods("POST"_method)
+        ([](const crow::request req, int num) {
 
-    curl = curl_easy_init();
+        if (req.method == "POST"_method)
+        {
+            std::cout << "data received: " << req.body << std::endl;
+            //return "Hello world";
 
-    if (curl)
-    {
-        curl_easy_setopt(curl, CURLOPT_URL, "https://api.open-elevation.com/api/v1/lookup?locations=41.161758,-8.583933|10,10|20,20");
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, my_write);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA);
+            return crow::response("Received num: " + std::to_string(num));
+            
+        }
+        else
+        {
+            return crow::response(404);
+        }
 
-        res = curl_easy_perform(curl);        
-    }
+    });
 
-    curl_global_cleanup();
-    return 0;*/
+    ////define your endpoint at the root directory
+    //CROW_ROUTE(app, "/")([]() {
+    //    return "Hello world";
+    //});
+
+    //set the port, set the app to run on multiple threads, and run the app
+    app.port(18080).multithreaded().run();
 
     std::unique_ptr<Converter> converter = std::make_unique<Converter>();
 
