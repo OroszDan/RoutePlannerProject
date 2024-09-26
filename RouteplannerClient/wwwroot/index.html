@@ -4,16 +4,32 @@
     <meta charset="utf-8">
     <title>Display the fastest route</title>
     <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
-    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
-    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.js"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.css" rel="stylesheet">
 
     <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-<div id="map"></div>
+    <div class="parent">
+        <div class="div1">
+            <h2>Welcome to the Electric Car Route Planner App!</h2>
+        </div>
+        <div class="div2, grid-item">
+            Select car:
+           <select>
+               <option>peugeot_208</option>
+           </select>
+        </div>
+        <div class="div3, grid-item">
+            <button id="startButton">Search route</button> 
+        </div>
+        <div class="div4">
+            <div id="map"></div>
+        </div>
+    </div>
 
-<script src="script.js"></script>
+    <script src="script.js"></script>
 
 </body>
 </html>

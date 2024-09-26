@@ -13,16 +13,16 @@ int main()
     crow::SimpleApp app; //define your crow application
 
     //define your endpoint at the root directory
-    CROW_ROUTE(app, "/json/<int>")
-        .methods("POST"_method)
-        ([](const crow::request req, int num) {
+    CROW_ROUTE(app, "/search")
+        .methods(crow::HTTPMethod::POST)
+        ([](const crow::request req) {
 
-        if (req.method == "POST"_method)
+        if (req.method == crow::HTTPMethod::POST)
         {
             std::cout << "data received: " << req.body << std::endl;
             //return "Hello world";
 
-            return crow::response("Received num: " + std::to_string(num));
+            return crow::response("Success!");
             
         }
         else
