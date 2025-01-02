@@ -63,16 +63,47 @@ map.on('click', (e) => {
 
 document.querySelector('#startButton').addEventListener('click', startRoutePlanning)
 
+getCars()
+
+function getCars() {
+
+    fetch('http://localhost:18080/getcars', {
+        method: "GET",
+        headers: {
+            "Content-type": "application/json; charset=UTF-8"
+        }
+    })
+        .then((response) => response.json())
+        .then((json) => console.log(json));;
+}
+
+function createOptions(json) {
+    const carValues = ['peugeot_208', 'bmw_3', 'mercedes_c']
+    const carTexts = ['Peugeot 208', 'BMW 3 Series', 'Mercedes C Class']
+    let carSelect = document.querySelector('#carSelect')
+
+    for (var i = 0; i < carValues.length; i++) {
+        let option = document.createElement('option')
+        option.value = carValues[i]
+        option.innerHTML = carTexts[i]
+        carSelect.appendChild(option)
+    }
+}
+
 function startRoutePlanning() {
     if (currentMarkers.length == 2) {
         console.log('Starting search')
+
+        let carSelect = document.querySelector('#carSelect')
+        let selectedCarValue = carSelect.options[carSelect.selectedIndex].value
+        console.log('Selected car: ' + selectedCarValue)
 
         const sendData = {
             startLon: currentMarkers[0]._lngLat.lng,
             startLat: currentMarkers[0]._lngLat.lat,
             finishLon: currentMarkers[1]._lngLat.lng,
             finishLat: currentMarkers[1]._lngLat.lat,
-            carModel: "peugeot_208"
+            carModel: selectedCarValue
         }
 
         console.log(sendData)
@@ -84,8 +115,8 @@ function startRoutePlanning() {
                 "Content-type": "application/json; charset=UTF-8"
             }
         })
-            .then((response) => response.json())
-            .then((json) => console.log(json));;
+        .then((response) => response.json())
+        .then((json) => console.log(json));;
     }
     else {
         alert('No start or finish selected!')

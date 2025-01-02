@@ -36,6 +36,8 @@ public:
 
 	static std::shared_ptr<std::vector<int16_t>> LoadChargingSpeedData(std::string filePath);
 
+	static std::shared_ptr<std::vector<std::string>> GetCarNames(std::string dirPath);
+
 private:
 
 	static void LoadJsonFile(std::string fileName, Json::Value& root);
@@ -43,7 +45,6 @@ private:
 	void LoadOsmFile(std::string name);
 
 	static void GetPreprocessedData(const Json::Value& root, std::shared_ptr<std::unordered_map<int64_t, Junction*>> Junctions, std::shared_ptr<std::vector<Segment*>> Segments);
-
 
 	void SelectHighwayNodesNeeded();
 

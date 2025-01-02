@@ -7,11 +7,12 @@
 #include "include/json/writer.h"
 #include "include/json/reader.h"
 #include "curl/curl.h"
+#include "ChargingJunction.h"
 
 #include <string>
 #include <cmath>
 #include <numbers>
-#include "ChargingJunction.h"
+#include <filesystem>
 
 
 Converter::Converter()
@@ -789,6 +790,20 @@ std::shared_ptr<std::vector<int16_t>> Converter::LoadChargingSpeedData(std::stri
 
 	file.close();
 	return chargingData;
+}
+
+std::shared_ptr<std::vector<std::string>> Converter::GetCarNames(std::string dirPath)
+{
+	std::shared_ptr<std::vector<std::string>> carNames = std::make_shared<std::vector<std::string>>();
+	for (const auto& entry : std::filesystem::directory_iterator(dirPath))
+	{
+		if (entry.is_regular_file())
+		{
+			;
+		}
+	}
+
+	return carNames;
 }
 
 Car Converter::LoadCarData(std::string carDataFilePath, std::string chargingDataFilePath)

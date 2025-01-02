@@ -9,7 +9,6 @@
 
 int main()
 {
-
     crow::SimpleApp app; //define your crow application
 
     //define your endpoint at the root directory
@@ -17,19 +16,19 @@ int main()
         .methods(crow::HTTPMethod::POST)
         ([](const crow::request req) {
 
-        if (req.method == crow::HTTPMethod::POST)
-        {
             std::cout << "data received: " << req.body << std::endl;
             //return "Hello world";
 
             return crow::response("Success!");
-            
-        }
-        else
-        {
-            return crow::response(404);
-        }
 
+    });
+
+    CROW_ROUTE(app, "/getcars")
+        .methods(crow::HTTPMethod::GET)
+        ([](const crow::request req) {
+
+        auto result = Converter::GetCarNames("../data/CarData");
+        return crow::response(0);
     });
 
     ////define your endpoint at the root directory
@@ -40,9 +39,10 @@ int main()
     //set the port, set the app to run on multiple threads, and run the app
     app.port(18080).multithreaded().run();
 
-    std::unique_ptr<Converter> converter = std::make_unique<Converter>();
+   /* std::unique_ptr<Converter> converter = std::make_unique<Converter>();
 
     converter->ConvertOsmDataToJson("../data/RawMaps/liechtenstein-latest-srtm.osm", "../data/PreprocessedMaps/highwaydata.json");
+    */
     //converter->ConvertOsmDataToJson("luxembourg-latest.osm", "highwaydata.json");
 
     //std::unique_ptr<RoutePlanner> planner = std::make_unique<RoutePlanner>();
