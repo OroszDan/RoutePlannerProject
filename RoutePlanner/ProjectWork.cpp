@@ -10,8 +10,6 @@
 
 int main()
 {
-    //crow::SimpleApp app; //define your crow application
-
     crow::App<crow::CORSHandler> app;
 
     // Middleware to handle CORS for all responses
@@ -51,11 +49,7 @@ int main()
     CROW_ROUTE(app, "/getcars")
         .methods(crow::HTTPMethod::GET)
         ([](const crow::request req) {
-        crow::response res;
-        res.set_header("Access-Control-Allow-Origin", "*");  // Allow all origins
-        res.set_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-        res.set_header("Access-Control-Allow-Headers", "Content-Type");
-        auto result = Converter::GetCarNames("../data/CarData");
+        auto res = Converter::GetCarNames("../data/CarData");
         return res;
     });
 

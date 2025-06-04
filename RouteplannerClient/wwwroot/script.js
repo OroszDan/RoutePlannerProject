@@ -54,11 +54,11 @@ map.on('click', (e) => {
             let index = currentMarkers.indexOf(marker)
             currentMarkers.splice(index, 1)
             marker.remove()
-            
+
         });
 
         currentMarkers.push(marker)
-    } 
+    }
 });
 
 document.querySelector('#startButton').addEventListener('click', startRoutePlanning)
@@ -74,20 +74,23 @@ function getCars() {
         }
     })
         .then((response) => response.json())
-        .then((json) => console.log(json));;
+        .then((json) => {
+            console.log(json)
+            createOptions(json)
+        })
 }
 
 function createOptions(json) {
     const carValues = ['peugeot_208', 'bmw_3', 'mercedes_c']
     const carTexts = ['Peugeot 208', 'BMW 3 Series', 'Mercedes C Class']
-    let carSelect = document.querySelector('#carSelect')
+    carSelect.innerHTML = ""; // Clear previous options
 
-    for (var i = 0; i < carValues.length; i++) {
-        let option = document.createElement('option')
-        option.value = carValues[i]
-        option.innerHTML = carTexts[i]
-        carSelect.appendChild(option)
-    }
+    json.forEach(car => {
+        let option = document.createElement('option');
+        option.value = car.names['id'];      // Use the car's id as the value
+        option.innerHTML = car.names['name']; // Use the car's name as the display text
+        carSelect.appendChild(option);
+    });
 }
 
 function startRoutePlanning() {
@@ -115,8 +118,8 @@ function startRoutePlanning() {
                 "Content-type": "application/json; charset=UTF-8"
             }
         })
-        .then((response) => response.json())
-        .then((json) => console.log(json));;
+            .then((response) => response.json())
+            .then((json) => console.log(json));;
     }
     else {
         alert('No start or finish selected!')

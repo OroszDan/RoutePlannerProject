@@ -61,7 +61,7 @@ void Converter::LoadOsmFile(std::string name)
 }
 
 void Converter::GetPreprocessedData(const Json::Value& root, std::shared_ptr<std::unordered_map<int64_t, Junction*>> Junctions, std::shared_ptr<std::vector<Segment*>> Segments)
-{	
+{
 	for (auto it = root["chargingNodes"].begin(); it != root["chargingNodes"].end(); it++)
 	{
 		Json::Value chargingNode = it->get("chargingNode", Json::nullValue);
@@ -82,7 +82,7 @@ void Converter::GetPreprocessedData(const Json::Value& root, std::shared_ptr<std
 				if (chargingData != Json::nullValue)
 				{
 					ChargingData data = ChargingData();
-					data.m_Output = chargingData["output"].asInt();	
+					data.m_Output = chargingData["output"].asInt();
 					data.m_Type = static_cast<ChargerType>(chargingData["type"].asInt());
 
 					chDatas.emplace_back(data);
@@ -94,20 +94,20 @@ void Converter::GetPreprocessedData(const Json::Value& root, std::shared_ptr<std
 		}
 	}
 
-	for (auto it = root["nodes"].begin(); it != root["nodes"].end(); ++it) 
+	for (auto it = root["nodes"].begin(); it != root["nodes"].end(); ++it)
 	{
 		Json::Value node = it->get("node", Json::nullValue);
-		
+
 		if (node != Json::nullValue)
 		{
 			int64_t id = node["id"].asInt64();
 			float_t lat = node["lat"].asFloat();
 			float_t lon = node["lon"].asFloat();
 			float_t elevation = node["ele"].asFloat();
-			
+
 			Junction* junction = new Junction(id, lon, lat, elevation);
 			Junctions->insert(std::make_pair(junction->m_Id, junction));
-		}	
+		}
 	}
 
 	for (auto it = root["ways"].begin(); it != root["ways"].end(); ++it)
@@ -128,7 +128,7 @@ void Converter::GetPreprocessedData(const Json::Value& root, std::shared_ptr<std
 			for (auto nodeIt = node["innernodes"].begin(); nodeIt != node["innernodes"].end(); nodeIt++)
 			{
 				segment->m_InnerNodes->push_back(Junctions->at(nodeIt->asInt64()));
-			}		
+			}
 
 			if (oneWay)
 			{
@@ -139,9 +139,9 @@ void Converter::GetPreprocessedData(const Json::Value& root, std::shared_ptr<std
 				Junctions->at(idFrom)->AddSegment(segment);
 				Junctions->at(idTo)->AddSegment(segment);
 			}
-			
+
 			Segments->push_back(segment);
-			
+
 		}
 	}
 }
@@ -225,19 +225,19 @@ void Converter::SelectChargingNodes()
 		//{
 		//	std::cout << tag->FindAttribute("v")->Value() << std::endl;
 		//}
-		
-		while (tag != nullptr && 
-			!( !strcmp(tag->FindAttribute("k")->Value(), "amenity") && !strcmp(tag->FindAttribute("v")->Value(), "charging_station")))
+
+		while (tag != nullptr &&
+			!(!strcmp(tag->FindAttribute("k")->Value(), "amenity") && !strcmp(tag->FindAttribute("v")->Value(), "charging_station")))
 		{
 			tag = tag->NextSiblingElement("tag");
 		}
-		
+
 		if (tag != nullptr)
 		{
 			std::string value;
 			tinyxml2::XMLElement* innerTag = node->FirstChildElement("tag");
 			bool chargerFound = false;
-			
+
 			while (innerTag != nullptr)
 			{
 				std::string value = innerTag->FindAttribute("k")->Value();
@@ -304,7 +304,7 @@ void Converter::SelectChargingNodes()
 
 							m_ChargingNodes->emplace_back(chargingNode);
 						}
-						
+
 						ChargingData data = ChargingData();
 
 						data.m_Type = chargerType;
@@ -320,13 +320,13 @@ void Converter::SelectChargingNodes()
 
 				innerTag = innerTag->NextSiblingElement("tag");
 			}
-			
-			
+
+
 			//get further data
 		}
 
 		node = node->NextSiblingElement("node");
-		
+
 	}
 }
 
@@ -478,7 +478,7 @@ void Converter::LoadHighways()
 							way_temp.m_InnerNodes = std::make_shared<std::vector<int64_t>>();
 
 							way_temp.m_InnerNodes->push_back(nodeRef);
-							
+
 						}
 						else
 						{
@@ -488,7 +488,7 @@ void Converter::LoadHighways()
 
 					m_Nd = m_Nd->NextSiblingElement("nd");
 					i++;
-				}		
+				}
 
 				CalculateAndSetLength(&way_temp);
 
@@ -654,7 +654,7 @@ void Converter::SaveToJson(std::string fileName)
 			{
 				nodes.append(it->m_InnerNodes->at(i));
 			}
-			
+
 		}
 
 		way["way"]["innernodes"] = nodes;
@@ -781,29 +781,54 @@ std::shared_ptr<std::vector<int16_t>> Converter::LoadChargingSpeedData(std::stri
 
 	std::ifstream file(filePath);
 
-	if (!file.is_open()) 
+	if (!file.is_open())
 		throw new std::exception("Error opening file.");
 
 	std::string line;
-	while (std::getline(file, line)) 
+	while (std::getline(file, line))
 		chargingData->emplace_back(std::stoi(line));
 
 	file.close();
 	return chargingData;
 }
 
-std::shared_ptr<std::vector<std::string>> Converter::GetCarNames(std::string dirPath)
+std::string Converter::GetCarNames(std::string dirPath)
 {
-	std::shared_ptr<std::vector<std::string>> carNames = std::make_shared<std::vector<std::string>>();
+	Json::Value carNames(Json::arrayValue);
+
+	//std::shared_ptr<std::vector<std::string>> carNames = std::make_shared<std::vector<std::string>>();
 	for (const auto& entry : std::filesystem::directory_iterator(dirPath))
 	{
-		if (entry.is_regular_file())
+		if (entry.is_regular_file() && entry.path().extension() == ".txt")
 		{
-			;
+			std::ifstream file(entry.path());
+			if (file.is_open())
+			{
+				std::string id;
+				std::string name;
+				Json::Value carJson;
+				if (std::getline(file, id))
+				{
+
+					carJson["names"]["id"] = id;
+				}
+				if (std::getline(file, name))
+				{
+					carJson["names"]["name"] = name;
+				}
+
+				carNames.append(carJson);
+
+				file.close();
+			}
 		}
 	}
 
-	return carNames;
+	Json::StreamWriterBuilder builder;
+	builder["indentation"] = ""; // If you want whitespace-less output
+	const std::string output = Json::writeString(builder, carNames);
+
+	return output;
 }
 
 Car Converter::LoadCarData(std::string carDataFilePath, std::string chargingDataFilePath)
@@ -842,7 +867,7 @@ void Converter::CalculateAndSetLength(Way* way)
 	float_t length = 0;
 	for (size_t i = 1; i < way->m_InnerNodes->size(); i++)
 	{
-			length += Util::CalculateDistanceBetweenTwoLatLonsInMetres(
+		length += Util::CalculateDistanceBetweenTwoLatLonsInMetres(
 			m_Nodes->at(way->m_InnerNodes->at(i - 1)).m_Lat, m_Nodes->at(way->m_InnerNodes->at(i)).m_Lat,
 			m_Nodes->at(way->m_InnerNodes->at(i - 1)).m_Lon, m_Nodes->at(way->m_InnerNodes->at(i)).m_Lon);
 	}
@@ -853,7 +878,7 @@ void Converter::CalculateAndSetLength(Way* way)
 bool Converter::IsRoad(const char* roadType, const tinyxml2::XMLElement* tag)
 {
 	if (strcmp(roadType, "motorway") &&
-		strcmp(roadType, "trunk") && 
+		strcmp(roadType, "trunk") &&
 		strcmp(roadType, "primary") &&
 		strcmp(roadType, "secondary") &&
 		strcmp(roadType, "tertiary") &&
@@ -875,9 +900,9 @@ bool Converter::IsRoad(const char* roadType, const tinyxml2::XMLElement* tag)
 			tag = tag->NextSiblingElement("tag");
 		}
 
-		if (tag != nullptr && 
-			(!strcmp(tag->FindAttribute("v")->Value(), "private") || 
-			 !strcmp(tag->FindAttribute("v")->Value(), "no")))
+		if (tag != nullptr &&
+			(!strcmp(tag->FindAttribute("v")->Value(), "private") ||
+				!strcmp(tag->FindAttribute("v")->Value(), "no")))
 		{
 			//access is restricted
 			return false;

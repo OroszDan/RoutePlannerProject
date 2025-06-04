@@ -36,7 +36,7 @@ public:
 
 	static std::shared_ptr<std::vector<int16_t>> LoadChargingSpeedData(std::string filePath);
 
-	static std::shared_ptr<std::vector<std::string>> GetCarNames(std::string dirPath);
+	static std::string GetCarNames(std::string dirPath);
 
 private:
 
