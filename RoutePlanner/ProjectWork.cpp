@@ -3,13 +3,38 @@
 #include "Car.h"
 
 #include "crow.h"
+#include "crow/middlewares/cors.h"
 
 #include <chrono>
 
 
 int main()
 {
-    crow::SimpleApp app; //define your crow application
+    //crow::SimpleApp app; //define your crow application
+
+    crow::App<crow::CORSHandler> app;
+
+    // Middleware to handle CORS for all responses
+    auto& cors = app.get_middleware<crow::CORSHandler>();
+
+    cors.global()
+        .origin("http://localhost:5083")  //frontend host
+        .allow_credentials()
+        .headers(
+            "Accept",
+            "Origin",
+            "Content-Type",
+            "Authorization",
+            "Refresh"
+        )
+        .methods(
+            crow::HTTPMethod::GET,
+            crow::HTTPMethod::POST,
+            crow::HTTPMethod::OPTIONS,
+            crow::HTTPMethod::HEAD,
+            crow::HTTPMethod::PUT
+            /* crow::HTTPMethod::DELETE*/
+        );
 
     //define your endpoint at the root directory
     CROW_ROUTE(app, "/search")
@@ -26,9 +51,12 @@ int main()
     CROW_ROUTE(app, "/getcars")
         .methods(crow::HTTPMethod::GET)
         ([](const crow::request req) {
-
+        crow::response res;
+        res.set_header("Access-Control-Allow-Origin", "*");  // Allow all origins
+        res.set_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+        res.set_header("Access-Control-Allow-Headers", "Content-Type");
         auto result = Converter::GetCarNames("../data/CarData");
-        return crow::response(0);
+        return res;
     });
 
     ////define your endpoint at the root directory
